@@ -91,7 +91,7 @@ extras_require = {
 # compress_source = 'src/borg/compress.pyx'
 # crypto_ll_source = 'src/borg/crypto/low_level.pyx'
 # crypto_helpers = 'src/borg/crypto/_crypto_helpers.c'
-chunker_source = 'onet/chunker.pyx'
+chunker_source = 'src/onet/chunker.pyx'
 # hashindex_source = 'src/borg/hashindex.pyx'
 # item_source = 'src/borg/item.pyx'
 # checksums_source = 'src/borg/algorithms/checksums.pyx'
@@ -197,7 +197,7 @@ if not on_rtd:
         # Extension('borg.compress', **compress_ext_kwargs),
         # Extension('borg.hashindex', [hashindex_source]),
         # Extension('borg.item', [item_source]),
-        Extension('chunker', [chunker_source]), # TODO
+        Extension('onet.chunker', [chunker_source]), # TODO
         # Extension('borg.algorithms.checksums', **checksums_ext_kwargs),
     ]
 
@@ -245,7 +245,7 @@ if not on_rtd:
 setup(
     name='onet',
     use_scm_version={
-        'write_to': 'onet/_version.py',
+        'write_to': 'src/onet/_version.py',
     },
     author='Tripleo',
     author_email='oluoluolu@gmail.com',
