@@ -27,11 +27,25 @@ def walk(p):
 
 import histore
 
-p = histore.ContentPage(0, None)
-print (100, p.path)
-h = histore.HiStore('histore')
-print (101, h.resolve_key(p.path_string))
+# p = histore.ContentPage(0, None)
+# print(100, p.path)
+# h = histore.HiStore('histore')
+# print(101, h.resolve_key(p.path_string))
 
 for each in walk(y):
-    print (99, each)
+	print(99, each)
 
+import onet
+store = onet.OnetStore("onet-000")
+store.remove('sample', recursive=True)
+
+for each in walk(y):
+	print (98, each)
+	if each.is_dir():
+		y_path = onet.Path('sample', each)
+		# if not store.exists(y_path):
+		store.mkdir(y_path, skip_if_exists=True)
+		store.import_dir_stat(y_path, os.stat(y), move=False)
+	else:
+		y_path = onet.Path('sample', each)
+		store.import_file_stat(y_path, os.stat(y), move=False)
