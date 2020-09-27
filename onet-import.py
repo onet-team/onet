@@ -1,5 +1,9 @@
 #!/usr/bin/python3
 
+import sys, os
+
+sys.path.insert(1, os.path.join(os.getcwd(), 'src'))
+
 from pathlib import Path
 
 y = Path('sample')
