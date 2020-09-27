@@ -39,20 +39,22 @@ class ContentPage:
 				return False
 		return True
 	
-	def openReader(self, filename):
+	def openReader(self, filename: str):
 		if filename == 'HiStore.info':
 			return None
-		r = HiStoreReader(filename, self.path, self)
+		r = HiStoreReader(filename, Path(self.store.root, self.path), self)
 		return r
 	
 	def openWriter(self, filename):
 		if filename == 'HiStore.info':
 			return None
-		r = HiStoreWriter(filename, self.path, self)
+		r = HiStoreWriter(filename, Path(self.store.root, self.path), self)
 		return r
 	
 	
 class HiStoreKey:
+	page: ContentPage
+	
 	def __init__(self, path, type_, expiry, page):
 		self.path = path
 		self.type = type_
@@ -66,12 +68,12 @@ class HiStoreKey:
 	
 
 class HiStore(object):
-	def __init__(self, root):
+	def __init__(self, root: str):
 		self.root = root
 		self.pagecache = {}
 		self.freepage = None
 		if not Path(root).exists():
-			Path(root).mkdir()
+			os.makedirs(Path(root))
 
 	def allocate(self):
 		p = self.find_next_page()
@@ -106,6 +108,7 @@ class HiStore(object):
 		return p
 
 	def openReader(self, key: HiStoreKey, filename: str):
+		print (100, filename)
 		return key.page.openReader(filename)
 
 	def openWriter(self, key: HiStoreKey, filename: str):
@@ -118,7 +121,7 @@ class HiStore(object):
 
 
 class HiStoreWriter(object):
-	filename: type('')
+	filename: str
 	path: Path
 	store: HiStore
 	
@@ -130,12 +133,16 @@ class HiStoreWriter(object):
 
 	def write(self, content: bytes, offset: int = None):
 		if content is not None:
-			self.fd.seek(offset)
-		self.fd.write(content)
+			if offset is not None:
+				self.fp.seek(offset)
+		if type(content) is str:
+			content = content.encode()
+		self.fp.write(content)
 
 	def close(self):
 		if self.fp is not None:
 			self.fp.close()
+			self.fp = None
 
 
 class HiStoreReader(object):
@@ -146,14 +153,24 @@ class HiStoreReader(object):
 	def __init__(self, filename, path, store):
 		self.filename = filename
 		if not path.exists():
-			os.mkdirs(path)
+			os.makedirs(path)
 		self.path = Path(path, filename)
 		self.store = store
-		self.fp = open(self.path, 'wb')
-
-	def read(self, amount: int) -> bytes:
-		return self.fd.read(amount)
+		if os.path.exists(self.path):
+			self.fp = open(self.path, 'rb')
+		else:
+			self.fp = None
+			
+	def read(self, amount: int = None) -> bytes:
+		if self.fp is not None:
+			if amount is None:
+				return self.fp.read()
+			else:
+				return self.fp.read(amount)
+		else:
+			return b''
 
 	def close(self):
 		if self.fp is not None:
 			self.fp.close()
+			self.fp = None
