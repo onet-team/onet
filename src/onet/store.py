@@ -143,7 +143,7 @@ class OnetStore:
 		l = list([str(x) for x in parents])
 		if l == ['.']:
 			print (1)
-			pass
+			return self.stat_one(self.root_node, l[0])
 		else:
 			l.reverse()
 			if not l:
@@ -165,4 +165,8 @@ class OnetStore:
 					self.remove(s, recursive)
 			else:
 				raise DirectoryNotEmpty()
+		pass
+	
+	def stat_one(self, root_node, param):
+		print (96, root_node, param)
 		pass
