@@ -6,20 +6,23 @@ sys.path.insert(1, os.path.join(os.getcwd(), 'src'))
 
 from pathlib import Path
 
+
 y = Path('sample')
 
+
 def walk(p):
-    if not p.is_dir():
-        #yield p
-        return
-    z = [x for x in p.iterdir()]
-    yield from z
-    for each in z:
-        yield from walk(each)
+	if not p.is_dir():
+		# yield p
+		return
+	z = [x for x in p.iterdir()]
+	yield from z
+	for each in z:
+		yield from walk(each)
 
-#print ([(x, os.stat(x)) for x in y.iterdir()])
 
-#print ([x for x in y.iterdir() if x.is_dir()])
+# print ([(x, os.stat(x)) for x in y.iterdir()])
+
+# print ([x for x in y.iterdir() if x.is_dir()])
 
 
 import histore
