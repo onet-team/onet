@@ -74,8 +74,11 @@ class OnetStore:
 			po = h.openReader(key, "Page.onet")
 		
 		n = self.read_page_file(po)
-		print (97, n, n.__dict__)
+		n.key = key
+		n.path = p.path
+		n.content_page = p
 		self.root_node = n
+		print (97, n, n.__dict__)
 	
 	def read_page_file(self, po): # po: histore.HiStoreReader
 		raw = po.read()
