@@ -1,4 +1,4 @@
-# borgbackup - main setup code (see also other setup_*.py files)
+# onet - main setup code (see also other setup_*.py files)
 
 import os
 import sys
@@ -278,8 +278,8 @@ setup(
     zip_safe=False,
     entry_points={
         'console_scripts': [
-            'borg = borg.archiver:main',
-            'borgfs = borg.archiver:main',
+            'onet-import = onet.command:import_command',
+            'onet = onet.command:main',
         ]
     },
     # See also the MANIFEST.in file.
