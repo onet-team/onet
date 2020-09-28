@@ -5,7 +5,7 @@ import types
 from datetime import timedelta
 from pathlib import Path
 from io import StringIO
-from typing import Any, Union
+from typing import Any, Union, Dict
 
 
 class ContentPage:
@@ -73,6 +73,8 @@ class HiStoreKey:
 	
 
 class HiStore(object):
+	pagecache: Dict[int, ContentPage]
+	
 	def __init__(self, root: str):
 		self.root = root
 		self.pagecache = {}
@@ -80,17 +82,17 @@ class HiStore(object):
 		if not Path(root).exists():
 			os.makedirs(Path(root))
 
-	def allocate(self):
+	def allocate(self) -> HiStoreKey:
 		p = self.find_next_page()
 		k = HiStoreKey(p.path_string, 'reservation', timedelta(seconds=30), p)
 		return k
 	
-	def resolve(self, key: int):
+	def resolve(self, key: int) -> HiStoreKey:
 		p = self._get_page(key)
 		k = HiStoreKey(p.path_string, 'content', timedelta(seconds=30), p)
 		return k
 
-	def resolve_key(self, skey: str):
+	def resolve_key(self, skey: str) -> HiStoreKey:
 		key = int(skey.replace('/', ''), 16)
 		return self.resolve(key)
 
@@ -104,7 +106,7 @@ class HiStore(object):
 		
 		return self.freepage
 	
-	def _get_page(self, number):
+	def _get_page(self, number) -> ContentPage:
 		if number in self.pagecache:
 			return self.pagecache[number]
 		p = ContentPage(number, self)
@@ -151,7 +153,7 @@ class HiStoreWriter(object):
 
 
 class HiStoreReader(object):
-	filename: type('')
+	filename: str
 	path: Path
 	store: HiStore
 	
