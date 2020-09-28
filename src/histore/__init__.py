@@ -13,10 +13,15 @@ class ContentPage:
 		self._flush_actions = []
 		self.number = number
 		self.store = store
+		self.path_string = self.number_to_path_string(number)
+		self.path = Path(self.path_string)
+	
+	@staticmethod
+	def number_to_path_string(number):
 		path = '%08x' % number
 		pp = StringIO(path)
-		self.path_string = '/'.join([pp.read(2), pp.read(2), pp.read(2), pp.read(2)])
-		self.path = Path(self.path_string)
+		p = '/'.join([pp.read(2), pp.read(2), pp.read(2), pp.read(2)])
+		return p
 	
 	def exists(self):
 		return Path(self.path, "HiStore.info").exists()
