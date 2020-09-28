@@ -18,7 +18,7 @@ class ContentPage:
 	
 	@staticmethod
 	def number_to_path_string(number):
-		path = '%08x' % number
+		path = '%08x' % (number & 0xffffffff)
 		pp = StringIO(path)
 		p = '/'.join([pp.read(2), pp.read(2), pp.read(2), pp.read(2)])
 		return p
