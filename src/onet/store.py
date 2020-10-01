@@ -143,9 +143,9 @@ class OnetStore:
 		return n
 	
 	def _read_page_file_int(self, po):
-		raw = po.read()
+		raw = po.read().decode()
 		l = raw.splitlines(keepends=False)
-		l = [str.split((x.decode()), ':', maxsplit=1) for x in l]
+		l = [str.split(x, ':', maxsplit=1) for x in l]
 		l = [(str.strip(x), str.strip(y)) for x, y in l]
 		# print(200, l, dict(l))
 		po.close()
