@@ -26,13 +26,16 @@ class ContentPage:
 	def exists(self):
 		return Path(self.store.root, self.path, "HiStore.info").exists()
 	
-	def read(self):
+	def read(self):  # -> Optional[HiStoreKey]:
 		if not self.exists():
 			return None
 		with open(Path(self.store.root, self.path, "HiStore.info"), 'r') as fp:
 			x = json.loads(fp.read())
-			print (x)
-			k = HiStoreKey(self.path_string, x['type'], 0, self.path)
+			print (10034, x)
+			if x['type']=='reservation':
+				k = HiStoreKey(self.path_string, x['type'], timedelta(seconds=30), self.path)
+			else:
+				k = HiStoreKey(self.path_string, x['type'], 0, self.path)
 			return k
 		
 	def flush(self):
@@ -128,7 +131,7 @@ class HiStore(object):
 		return (p, new_page)
 
 	def openReader(self, key: HiStoreKey, filename: str):
-		print (100, filename)
+		# print (10123, filename)
 		return key.page.openReader(filename)
 
 	def openWriter(self, key: HiStoreKey, filename: str):
@@ -137,6 +140,9 @@ class HiStore(object):
 		:param key:
 		:type filename: basestring
 		"""
+		with open(Path(self.root, key.page.path, "HiStore.info"), 'w') as fp:
+			y = {'type': 'content'}
+			fp.write(json.dumps(y))
 		return key.page.openWriter(filename)
 
 
