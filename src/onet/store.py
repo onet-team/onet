@@ -138,7 +138,7 @@ class OnetStore:
 				last_ver = ''
 			
 			if node_type == 'Directory':
-				n = DirectoryNode(self, po.store.number, '/')  # TODO is this an appropriate filename?
+				n = DirectoryNode(self, po.store.number, filename)
 			else:
 				n = FileNode(self, po.store.number)
 			n.guid = node_guid
