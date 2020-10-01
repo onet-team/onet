@@ -9,7 +9,24 @@ from . import base36
 
 
 class OnetStat(object):
-	pass
+	st_mode: int
+	st_key: histore.HiStoreKey
+	st_storage: str
+	st_owner: str  # uuid
+	st_uuid: str
+	st_guid: str
+	
+	def is_dir(self):
+		if not self.exists():
+			return False
+		if self.st_uuid == '':
+			return False
+		return True
+	
+	def exists(self):
+		if self.st_uuid == '':
+			return False
+		return True
 
 
 class DirectoryNotEmpty(Exception):
@@ -18,14 +35,10 @@ class DirectoryNotEmpty(Exception):
 
 class MalformedPageFile(Exception):
 	pass
+	
 
-
-class DirectoryNode(object):
-	pass
-
-
-class FileNode(object):
-	pass
+def new_hex_uuid():
+	return uuid.uuid4().hex
 
 
 class OnetStore:
@@ -36,6 +49,19 @@ class OnetStore:
 			FilePath(path).mkdir(parents=True)
 		self._init_spaces()
 		self._init_default()
+		self._init_user()
+	
+	def _init_user(self):
+		p = FilePath(self._path, 'user.dat')
+		from . import datatypes
+		if not p.exists():
+			with p.open('w') as fp:
+				user_uuid = new_hex_uuid()
+				fp.write('%s\n' % user_uuid)
+		else:
+			with p.open('r') as fp:
+				user_uuid = fp.readline().strip()
+		self.u = datatypes.User(user_uuid)
 	
 	def _init_spaces(self):
 		p = FilePath(self._path, 'spaces.json')
@@ -47,8 +73,8 @@ class OnetStore:
 			spaces = json.loads(f.read())
 		# print(spaces)
 		x = spaces["spaces"]
-		# print (x)
-		y=[]
+		print(900, x)
+		y = []
 		for each in x:
 			if each['default'] is True:
 				y.append((each['name'], each['id']))
@@ -58,7 +84,8 @@ class OnetStore:
 		# newDict = dict(filter(lambda elem: elem[0]['default'] is True, spaces["spaces"].items()))
 		# print (newDict)
 		# print([x["default"] for x in spaces["spaces"].keys()])
-		pass
+		self._storage = y[0][1]
+		self._space_name = y[0][0]
 	
 	def _init_default(self):
 		h = histore.HiStore(FilePath(self._path, 'space/histore'))
@@ -68,7 +95,7 @@ class OnetStore:
 		print(101, key)
 		po = h.openReader(key, "Page.onet")
 		self.h = h
-		print (po)
+		print(po)
 		if po.fp is None:
 			self._write_default()
 			po = h.openReader(key, "Page.onet")
@@ -80,7 +107,7 @@ class OnetStore:
 		self.root_node = n
 		print (97, n, n.__dict__)
 	
-	def read_page_file(self, po): # po: histore.HiStoreReader
+	def read_page_file(self, po):  # po: histore.HiStoreReader
 		raw = po.read()
 		l = raw.splitlines(keepends=False)
 		l = [str.split((x.decode()), ':', maxsplit=1) for x in l]
@@ -111,7 +138,7 @@ class OnetStore:
 		key = self.h.resolve_key(p.path_string)
 		wr = self.h.openWriter(key, "Page.onet")
 		wr.write("Type: Directory\n")
-		wr.write("URN: "+uuid.uuid4().hex+"\n")
+		wr.write("URN: " + new_hex_uuid() + "\n")
 		wr.close()
 	
 	def mkdir(self, path: FilePath, skip_if_exists=False):
