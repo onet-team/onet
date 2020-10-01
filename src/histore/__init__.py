@@ -42,13 +42,14 @@ class DirectoryPage:
 			return k
 		
 	def flush(self):
+		errs = []
 		for each in self._flush_actions:
 			b = each.act()
 			if b:
 				self._flush_actions.remove(each)
 			else:
-				return False
-		return True
+				errs += (each, b)
+		return errs
 	
 	def openReader(self, filename: str):
 		if filename == 'HiStore.info':
@@ -61,7 +62,13 @@ class DirectoryPage:
 			return None
 		r = HiStoreWriter(filename, Path(self.store.root, self.path), self)
 		return r
-	
+
+	def hasContent(self, filename):
+		if filename == 'HiStore.info':
+			return None
+		r = Path(self.store.root, self.path, filename).exists()
+		return r
+
 	
 class HiStoreKey:
 	page: DirectoryPage
