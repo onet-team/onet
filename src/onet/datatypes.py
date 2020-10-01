@@ -39,6 +39,8 @@ class Acls:
 				r['inherit-%s' % k] = v
 		return r
 
+	def from_dict(self, d):
+		pass
 
 class Acl:
 	type: str
@@ -97,18 +99,30 @@ class Version:
 		info['attributes'] = self.attributes
 		r['info'] = info
 		return r
+	
+	def from_dict(self, d):
+		version = d['version']
+		self.uuid = version['uuid']
+		self.name = version['name']
+		self.acl = version['acl']
+		
+		info = d['info']
+		entries = info['entries']  # TODO what to do with this??
+		self.attributes = info['attributes']
 
 
 class Entries:
 	entries: list
+	version: str
 	
-	def __init__(self):
+	def __init__(self, version):
 		self.entries = []
+		self.version = version
 	
 	def to_dict(self):
 		r = {}
 		count = len(self.entries)
-		entrylist = {'count': count}
+		entrylist = {'count': count, 'version': self.version}
 		r['entrylist'] = entrylist
 		for each in range(count):
 			entry = self.entries[each]
@@ -116,7 +130,19 @@ class Entries:
 			r[entstr] = entry.to_dict()
 		return r
 
+	def from_dict(self, d):
+		if not ('entrylist' in d): return
+		#
+		entrylist = d['entrylist']
+		count = entrylist['count']
+		for each in range(count):
+			entstr = 'entry-%d' % count
+			self.entries.add(d[entstr])
 
+	def add(self, entry):
+		self.entries.append(entry)
+		
+		
 class Entry:
 	pass
 
@@ -147,7 +173,7 @@ class ExternalEntry(Entry):
 class StorageEntry(Entry):
 	uuid: str
 	filename: str
-	key: str # ??
+	storage_name: str # ??
 	
 	def __init__(self):
 		pass
@@ -161,7 +187,12 @@ class NormalEntry(Entry):
 	def __init__(self):
 		pass
 
-
+	def to_dict(self):
+		r = {}
+		r['uuid'] = self.uuid
+		r['filename'] = self.filename
+		return r
+	
 class Chunks:
 	pass
 
@@ -180,6 +211,7 @@ class AttributeValue:
 class Attributes:
 	version: Version
 	attr: Dict[str, AttributeValue]
+	uuid: str
 	
 	def __init__(self, version):
 		self.attr = {}

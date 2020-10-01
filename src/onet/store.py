@@ -1,4 +1,5 @@
 import json
+from typing import Dict, Any
 
 import histore
 from pathlib import PurePosixPath as Path
@@ -94,12 +95,12 @@ class OnetStore:
 	def _init_default(self):
 		h = histore.HiStore(FilePath(self._path, self._space_name, 'histore'))
 		p = histore.DirectoryPage(0, h)
-		print(100, p.path, p.path_string)
+		# print(100, p.path, p.path_string)
 		key = h.resolve_key(p.path_string)
-		print(101, key)
+		# print(101, key)
 		po = h.openReader(key, "Page.onet")
 		self.h = h
-		print(po)
+		# print(po)
 		if po.fp is None:
 			self._write_default()
 			po = h.openReader(key, "Page.onet")
@@ -110,7 +111,9 @@ class OnetStore:
 		n.content_page = p
 		n.full_path = '.'
 		self.root_node = n
-		print(97, n, n.__dict__)
+		if n.last_ver != '':
+			n.read_entries()
+		# print(97, n, n.__dict__)
 	
 	def read_page_file(self, po):  # po: histore.HiStoreReader
 		raw = po.read()
@@ -129,7 +132,7 @@ class OnetStore:
 				last_ver = ''
 			
 			if node_type == 'Directory':
-				n = DirectoryNode(self, po.store.number)
+				n = DirectoryNode(self, po.store.number, '/')  # TODO is this an appropriate filename?
 			else:
 				n = FileNode(self, po.store.number)
 			n.guid = node_guid
@@ -231,10 +234,14 @@ class OnetStore:
 			s.st_storage = root_node.store._storage
 			s.st_uuid = ''
 		else:
-			x = root_node.entries[param]
+			x = None
+			if param in root_node.entries:
+				x = root_node.entries[param]
 			s = OnetStat()
 			s.st_storage = root_node.store._storage
 			s.st_uuid = ''
+			if x is not None:
+				pass
 		return s
 	
 	def list(self, path):
@@ -254,6 +261,8 @@ class OnetStore:
 				return self.resolve(Path(parent, filename))
 		else:
 			print ("TODO mkdir_simple", parent, filename)
+			parent: DirectoryNode
+			
 			key = parent.store.h.allocate()
 			wr = self.h.openWriter(key, "Page.onet")
 			wr.write("Type: Directory\n")
@@ -267,7 +276,7 @@ class OnetStore:
 			acls = self.copy_acls_or_default(parent, last_version)
 			acl_uuid = new_hex_uuid()
 			#
-			directory_node = DirectoryNode(self, key.page.number)
+			directory_node = DirectoryNode(self, key.page.number, filename)
 			directory_node.full_path = Path(parent.full_path, filename)
 			directory_node.guid = node_guid
 			directory_node.last_ver = last_version
@@ -277,8 +286,11 @@ class OnetStore:
 			#
 			version = datatypes.Version("v1", last_version, acl_uuid, directory_node)
 			attr = datatypes.Attributes(version)
+			attr.uuid = version.uuid
+			print(10283, acls.acls)
 			attr.put('filename', datatypes.AttributeValue(filename, acl=acls.acls[0]))
 			version.attributes = attr.uuid
+			entries = datatypes.Entries(version.uuid)
 			#
 			import toml
 			fp = self.h.openWriter(key, acl_uuid+'.acls')
@@ -293,6 +305,12 @@ class OnetStore:
 			s = toml.dumps(attr.to_dict())
 			fp.write(s)
 			fp.close()
+			fp = self.h.openWriter(key, last_version+'.entries')
+			s = toml.dumps(entries.to_dict())
+			fp.write(s)
+			fp.close()
+			#
+			parent.add(filename, directory_node, version=version, file_uuid=last_version)
 			#
 			return directory_node
 
@@ -310,14 +328,28 @@ class OnetStore:
 		return path
 	
 	def copy_acls_or_default(self, parent, version):
+		"""
+
+		:type parent: DirectoryNode
+		"""
+		from . import datatypes
 		if parent.last_ver == '':
-			from . import datatypes
 			acls = datatypes.Acls(version, self.u)  # TODO arguments not even used
 			acl = datatypes.Acl('all', self.u)
 			acls.acls.append(acl)
 			return acls
 		else:
 			print ("TODO copy acls")
+			rdf = parent.content_page.openReader(parent.last_ver+".acls")
+			rd = rdf.read().decode()
+			print(10339, rd)
+			rdf.close()
+			acls = datatypes.Acls(None, None)
+			import toml
+			d = toml.loads(rd)
+			print(10344, d)
+			acls.from_dict(d)
+			return acls
 
 
 class DirectoryNode(object):
@@ -328,10 +360,14 @@ class DirectoryNode(object):
 	last_ver: str
 	path: Path
 	store: OnetStore
+	filename: str
+	# entries: Dict[str, datatypes.Entry]
 	
-	def __init__(self, store, key):
+	def __init__(self, store, key, filename):
 		self.store = store
 		self.key = key
+		self.filename = filename
+		self.entries = {}
 		
 	def exists(self):
 		if self.last_ver == '':
@@ -344,6 +380,83 @@ class DirectoryNode(object):
 	def is_dir(self):
 		return True  #self.store.is_dir(self.full_path)
 	
+	def add(self, filename, directory_node, version, file_uuid):
+		"""
+
+		:type version: onet.datatypes.Version
+		"""
+		last_ver = new_hex_uuid()
+		p = histore.DirectoryPage(self.key, self.store.h)
+		key = self.store.h.resolve_key(p.path_string)
+		wr = self.store.h.openWriter(key, "Page.onet")
+		wr.write("Type: Directory\n")
+		wr.write("URN: " + self.guid + "\n")
+		wr.write("Last-Version: " + last_ver + "\n")
+		wr.close()
+		#
+		from . import datatypes
+		import toml
+		#
+		acls = self.store.copy_acls_or_default(self, self.last_ver)
+		acl_uuid = new_hex_uuid()
+		#
+		if self.last_ver == '':
+			ver_name = "v1"
+		else:
+			import re
+			x = re.match(r'v(\d+)', self.last_ver)
+			if len(x.groups()):
+				ver = int(x.group(1))+1
+				ver_name = 'v%d'%ver
+			else:
+				ver_name = last_ver
+		version = datatypes.Version(ver_name, last_ver, acl_uuid, self)
+		attr = datatypes.Attributes(version)
+		attr.uuid = version.uuid
+		attr.put('filename', datatypes.AttributeValue(self.filename, acl=acls.acls[0]))
+		version.attributes = attr.uuid
+		#
+		fp = self.store.h.openWriter(key, acl_uuid + '.acls')
+		s = toml.dumps(acls.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = self.store.h.openWriter(key, last_ver + '.version')
+		s = toml.dumps(version.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = self.store.h.openWriter(key, last_ver + '.attr')
+		s = toml.dumps(attr.to_dict())
+		fp.write(s)
+		fp.close()
+		#
+		es = datatypes.Entries(version.uuid)
+		e = datatypes.NormalEntry()
+		e.uuid = file_uuid
+		e.filename = filename
+		es.add(e)
+		wr = self.store.h.openWriter(key, "%s.entries" % last_ver)
+		s = toml.dumps(es.to_dict())
+		wr.write(s)
+		wr.close()
+		#
+		self.entries[filename] = e
+		self.last_ver = last_ver
+
+	def read_entries(self):
+		p = histore.DirectoryPage(self.key, self.store.h)
+		key = self.store.h.resolve_key(p.path_string)
+		rr = self.store.h.openReader(key, "%s.entries" % self.last_ver)
+		rd = rr.read().decode()
+		rr.close()
+		from . import datatypes
+		import toml
+		entf = toml.loads(rd)
+		ents = datatypes.Entries(None)
+		ents.from_dict(entf)
+		for each in ents.entries:
+			print (each)
+			self.entries = ents.entries  # TODO convert to Node
+		
 
 class FileNode(object):
 	content_page: histore.DirectoryPage
