@@ -8,21 +8,21 @@ from io import StringIO
 from typing import Any, Union, Dict, Tuple
 
 
+def number_to_path_string(number):
+	path = '%08x' % (number & 0xffffffff)  # TODO does this do anything?
+	pp = StringIO(path)
+	p = '/'.join([pp.read(2), pp.read(2), pp.read(2), pp.read(2)])
+	return p
+
+
 class DirectoryPage:
 	def __init__(self, number, store):
 		self._flush_actions = []
 		self.number = number
 		self.store = store
-		self.path_string = self.number_to_path_string(number)
+		self.path_string = number_to_path_string(number)
 		self.path = Path(self.path_string)
-	
-	@staticmethod
-	def number_to_path_string(number):
-		path = '%08x' % (number & 0xffffffff)
-		pp = StringIO(path)
-		p = '/'.join([pp.read(2), pp.read(2), pp.read(2), pp.read(2)])
-		return p
-	
+		
 	def exists(self):
 		return Path(self.store.root, self.path, "HiStore.info").exists()
 	
@@ -32,6 +32,9 @@ class DirectoryPage:
 		with open(Path(self.store.root, self.path, "HiStore.info"), 'r') as fp:
 			x = json.loads(fp.read())
 			print (10034, x)
+			#
+			# TODO Support reservation on Content not whole directory
+			#
 			if x['type']=='reservation':
 				k = HiStoreKey(self.path_string, x['type'], timedelta(seconds=30), self.path)
 			else:
@@ -69,7 +72,7 @@ class HiStoreKey:
 		self.expiry = expiry
 		self.page = page
 		
-	__slots__ = ('path', 
+	__slots__ = ('path',
 				 'type', # type is Reservation or Content
 				 'expiry',
 	             'page')
