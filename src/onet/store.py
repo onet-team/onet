@@ -126,7 +126,7 @@ class OnetStore:
 		l = raw.splitlines(keepends=False)
 		l = [str.split((x.decode()), ':', maxsplit=1) for x in l]
 		l = [(str.strip(x), str.strip(y)) for x, y in l]
-		print(200, l, dict(l))
+		# print(200, l, dict(l))
 		po.close()
 		d = dict(l)
 		try:
