@@ -5,7 +5,7 @@ import types
 from datetime import timedelta
 from pathlib import Path
 from io import StringIO
-from typing import Any, Union, Dict
+from typing import Any, Union, Dict, Tuple
 
 
 class ContentPage:
@@ -88,7 +88,7 @@ class HiStore(object):
 		return k
 	
 	def resolve(self, key: int) -> HiStoreKey:
-		p = self._get_page(key)
+		p, f = self._get_page(key)
 		k = HiStoreKey(p.path_string, 'content', timedelta(seconds=30), p)
 		return k
 
@@ -98,21 +98,34 @@ class HiStore(object):
 
 	def find_next_page(self):
 		if self.freepage is None:
-			self.freepage = self._get_page(0)
+			self.freepage, f = self._get_page(0)
 			
 		if self.freepage.exists():
 			while self.freepage.exists():
-				self.freepage = self._get_page(self.freepage.number+1)
+				(self.freepage, new_page) = self._get_page(self.freepage.number+1, True)
+				if new_page:
+					break
 		
 		return self.freepage
 	
-	def _get_page(self, number) -> ContentPage:
+	def _get_page(self, number, reservation=False) -> Tuple[ContentPage, bool]:
+		new_page = False
 		if number in self.pagecache:
-			return self.pagecache[number]
+			return (self.pagecache[number], False)
 		p = ContentPage(number, self)
-		p.read()
+		x = p.read()
+		if x is None:
+			os.makedirs(Path(self.root, p.path), exist_ok=True)
+			with open(Path(self.root, p.path, "HiStore.info"), 'w') as fp:
+				if reservation:
+					y = {'type': 'reservation'}
+					new_page = True  # TODO
+				else:
+					y = {'type': 'content'}
+				fp.write(json.dumps(y))
+			x = p.read()
 		self.pagecache[number] = p
-		return p
+		return (p, new_page)
 
 	def openReader(self, key: HiStoreKey, filename: str):
 		print (100, filename)
