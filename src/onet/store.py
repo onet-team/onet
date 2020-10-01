@@ -93,7 +93,7 @@ class OnetStore:
 	
 	def _init_default(self):
 		h = histore.HiStore(FilePath(self._path, self._space_name, 'histore'))
-		p = histore.ContentPage(0, h)
+		p = histore.DirectoryPage(0, h)
 		print(100, p.path, p.path_string)
 		key = h.resolve_key(p.path_string)
 		print(101, key)
@@ -139,7 +139,7 @@ class OnetStore:
 		return n
 	
 	def _write_default(self):
-		p = histore.ContentPage(0, self.h)
+		p = histore.DirectoryPage(0, self.h)
 		key = self.h.resolve_key(p.path_string)
 		wr = self.h.openWriter(key, "Page.onet")
 		wr.write("Type: Directory\n")
@@ -319,7 +319,7 @@ class OnetStore:
 
 
 class DirectoryNode(object):
-	content_page: histore.ContentPage
+	content_page: histore.DirectoryPage
 	guid: str
 	histore_key: histore.HiStoreKey
 	key: int
@@ -344,7 +344,7 @@ class DirectoryNode(object):
 	
 
 class FileNode(object):
-	content_page: histore.ContentPage
+	content_page: histore.DirectoryPage
 	guid: str
 	histore_key: histore.HiStoreKey
 	key: int

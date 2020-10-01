@@ -8,7 +8,7 @@ from io import StringIO
 from typing import Any, Union, Dict, Tuple
 
 
-class ContentPage:
+class DirectoryPage:
 	def __init__(self, number, store):
 		self._flush_actions = []
 		self.number = number
@@ -61,7 +61,7 @@ class ContentPage:
 	
 	
 class HiStoreKey:
-	page: ContentPage
+	page: DirectoryPage
 	
 	def __init__(self, path, type_, expiry, page):
 		self.path = path
@@ -76,7 +76,7 @@ class HiStoreKey:
 	
 
 class HiStore(object):
-	pagecache: Dict[int, ContentPage]
+	pagecache: Dict[int, DirectoryPage]
 	
 	def __init__(self, root: str):
 		self.root = root
@@ -111,11 +111,11 @@ class HiStore(object):
 		
 		return self.freepage
 	
-	def _get_page(self, number, reservation=False) -> Tuple[ContentPage, bool]:
+	def _get_page(self, number, reservation=False) -> Tuple[DirectoryPage, bool]:
 		new_page = False
 		if number in self.pagecache:
 			return (self.pagecache[number], False)
-		p = ContentPage(number, self)
+		p = DirectoryPage(number, self)
 		x = p.read()
 		if x is None:
 			os.makedirs(Path(self.root, p.path), exist_ok=True)
