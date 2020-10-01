@@ -73,7 +73,7 @@ class Version:
 	uuid: str
 	name: str
 	acl: str
-	attributes: str  # dict of Attributes
+	attributes: str  # a pointer to an attr file
 	previous: list  # of uuids/versions of old versions
 	
 	def __init__(self, name, uuid, acl_uuid, node):

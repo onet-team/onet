@@ -278,6 +278,8 @@ class OnetStore:
 			version = datatypes.Version("v1", last_version, acl_uuid, directory_node)
 			attr = datatypes.Attributes(version)
 			attr.put('filename', datatypes.AttributeValue(filename, acl=acls.acls[0]))
+			version.attributes = attr.uuid
+			#
 			import toml
 			fp = self.h.openWriter(key, acl_uuid+'.acls')
 			s = toml.dumps(acls.to_dict())
