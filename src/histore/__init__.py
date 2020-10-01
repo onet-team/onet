@@ -24,12 +24,12 @@ class ContentPage:
 		return p
 	
 	def exists(self):
-		return Path(self.path, "HiStore.info").exists()
+		return Path(self.store.root, self.path, "HiStore.info").exists()
 	
 	def read(self):
 		if not self.exists():
 			return None
-		with open(Path(self.path, "HiStore.info"), 'r') as fp:
+		with open(Path(self.store.root, self.path, "HiStore.info"), 'r') as fp:
 			x = json.loads(fp.read())
 			print (x)
 			k = HiStoreKey(self.path_string, x['type'], 0, self.path)
