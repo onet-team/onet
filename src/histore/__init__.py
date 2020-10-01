@@ -162,7 +162,7 @@ class HiStoreWriter(object):
 			if offset is not None:
 				self.fp.seek(offset)
 		if type(content) is str:
-			content = content.encode()
+			content = content.encode()  # convert to bytes
 		self.fp.write(content)
 
 	def close(self):
