@@ -92,9 +92,10 @@ class Version:
 			r['previous'] = self.previous
 		info = {}
 		if self.node.is_dir():
-			info['entries'] = self.node.uuid
+			info['entries'] = self.node.last_ver  # TODO was uuid
 		# elif self.node.is_file():
 		info['attributes'] = self.attributes
+		r['info'] = info
 		return r
 
 
@@ -191,8 +192,8 @@ class Attributes:
 	def to_dict(self):
 		r = {}
 		count = len(self.attr)
-		r['attributes'] = {'attributes': {'count': count}}
-		r['meta'] = {'meta': {'version': self.version.name, 'uuid': self.version.uuid}}
+		r['attributes'] = {'count': count}
+		r['meta'] = {'version': self.version.name, 'uuid': self.version.uuid}
 		count = 0
 		for k, v in self.attr.items():
 			attrstr = 'attr-%d' % count
