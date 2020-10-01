@@ -105,7 +105,7 @@ class OnetStore:
 			self._write_default()
 			po = h.openReader(key, "Page.onet")
 		
-		n = self.read_page_file(po)
+		n = self.read_page_file(po, '/')  # TODO is this an appropriate filename?
 		n.histore_key = key
 		n.path = p.path
 		n.content_page = p
@@ -115,7 +115,13 @@ class OnetStore:
 			n.read_entries()
 		# print(97, n, n.__dict__)
 	
-	def read_page_file(self, po):  # po: histore.HiStoreReader
+	def read_page_file(self, po, filename):
+		"""
+
+		:param filename:
+		:type po: histore.HiStoreReader
+		:rtype: DirectoryNode | FileNode
+		"""
 		raw = po.read()
 		l = raw.splitlines(keepends=False)
 		l = [str.split((x.decode()), ':', maxsplit=1) for x in l]
