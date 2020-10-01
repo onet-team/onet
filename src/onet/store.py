@@ -122,12 +122,7 @@ class OnetStore:
 		:type po: histore.HiStoreReader
 		:rtype: DirectoryNode | FileNode
 		"""
-		raw = po.read()
-		l = raw.splitlines(keepends=False)
-		l = [str.split((x.decode()), ':', maxsplit=1) for x in l]
-		l = [(str.strip(x), str.strip(y)) for x, y in l]
-		# print(200, l, dict(l))
-		po.close()
+		l = self._read_page_file_int(po)
 		d = dict(l)
 		try:
 			node_type = d['Type']
@@ -146,6 +141,15 @@ class OnetStore:
 		except KeyError as e:
 			raise MalformedPageFile(e)
 		return n
+	
+	def _read_page_file_int(self, po):
+		raw = po.read()
+		l = raw.splitlines(keepends=False)
+		l = [str.split((x.decode()), ':', maxsplit=1) for x in l]
+		l = [(str.strip(x), str.strip(y)) for x, y in l]
+		# print(200, l, dict(l))
+		po.close()
+		return l
 	
 	def _write_default(self):
 		p = histore.DirectoryPage(0, self.h)
