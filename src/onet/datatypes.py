@@ -29,6 +29,7 @@ class Acls:
 			acl = self.acls[each]
 			aclstr = 'acl-%d' % count
 			r[aclstr] = acl.to_dict()
+			acl.name = aclstr
 		if len(self.inherits):
 			inharr = [x.version for x in self.inherits.keys()]
 			r['inherits'] = inharr
@@ -42,6 +43,7 @@ class Acls:
 class Acl:
 	type: str
 	principal: User
+	name: str
 	
 	acl_types = ['read', 'write', 'append', 'list', 'delete', 'all', 'deny', 'allow']
 	
@@ -166,7 +168,7 @@ class Chunks:
 class AttributeValue:
 	type: str
 	value: Any
-	acl: str
+	acl: Acl
 	
 	def __init__(self, value, type=None, acl=None):
 		self.value = value
@@ -200,7 +202,7 @@ class Attributes:
 				r[attrstr]['type'] = v.type
 			r[attrstr]['value'] = v.value
 			if v.acl:
-				r[attrstr]['acl'] = v.acl
+				r[attrstr]['acl'] = v.acl.name  # TODO make sure you call acl.to_dict before this
 			count += 1
 		return r
 
