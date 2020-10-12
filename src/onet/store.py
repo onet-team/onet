@@ -502,7 +502,7 @@ class DirectoryNode(object):
 				#
 				key1 = self.store.h.resolve_key(found_key)
 				po = self.store.h.openReader(key1, "Page.onet")
-				node = self.read_page_file(po, each)
+				node = self.store.read_page_file(po, each)
 				#
 				ver, attr, filename = self.read_version(each, found_key)
 				node.version = ver
