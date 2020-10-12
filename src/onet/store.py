@@ -45,12 +45,28 @@ def new_hex_uuid():
 class OnetStore:
 	def __init__(self, path):
 		self.stat_cache = {}
+		self._cache = []
 		self._path = path
 		if not FilePath(path).exists():
 			FilePath(path).mkdir(parents=True)
 		self._init_spaces()
 		self._init_default()
 		self._init_user()
+	
+	def _read_cache(self):
+		from .cache import Cache
+		self._cache = Cache()
+		
+	# def _read_cache(self, key):
+	# 	po = self.h.openReader(key, ".cache")
+	# 	rd = po.read().decode()
+	# 	po.close()
+	# 	x = [str.split(y, maxsplit=1) for y in rd.splitlines()]
+	# 	print (10059, x)
+	# 	x = [tuple([y[0], int(y[1])]) for y in x]
+	# 	self._cache += x
+	# 	import atexit
+	# 	atexit.register(self.write_cache, (key, x))
 	
 	def _init_user(self):
 		p = FilePath(self._path, 'user.dat')
@@ -100,6 +116,7 @@ class OnetStore:
 		# print(101, key)
 		po = h.openReader(key, "Page.onet")
 		self.h = h
+		# self._read_cache(key)
 		# print(po)
 		if po.fp is None:
 			self._write_default()
@@ -351,7 +368,8 @@ class OnetStore:
 		else:
 			print ("TODO copy acls")
 			rdf = parent.content_page.openReader(parent.last_ver+".acls")
-			rd = rdf.read().decode()
+			rd = rdf.read()
+			rd = rd.decode()
 			print(10339, rd)
 			rdf.close()
 			acls = datatypes.Acls(None, None)
@@ -465,8 +483,10 @@ class DirectoryNode(object):
 		ents.from_dict(entf)
 		for each in ents.entries:
 			print (each)
-			self.entries = ents.entries  # TODO convert to Node
+			self.entries[each['filename']] = self.get_cache(each)  # TODO convert to Node
 		
+	def get_cache(self, entry):
+		pass
 
 class FileNode(object):
 	content_page: histore.DirectoryPage
