@@ -285,7 +285,10 @@ class OnetStore:
 			s.st_storage = root_node.store._storage
 			s.st_uuid = ''
 			if x is not None:
-				pass
+				s.st_uuid = x.last_ver
+				s.st_guid = x.guid
+				s.st_key = x.path_string
+				s.node = x
 		return s
 	
 	def list(self, path):
