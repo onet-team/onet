@@ -89,7 +89,10 @@ class Version:
 	
 	def to_dict(self):
 		r = {}
-		version = {'uuid': self.uuid, 'name': self.name, 'acl': self.acl}
+		if self.name is not None:
+			version = {'uuid': self.uuid, 'name': self.name, 'acl': self.acl}
+		else:
+			version = {'uuid': self.uuid, 'acl': self.acl}  # TODO version string
 		r['version'] = version
 		if len(self.previous):
 			r['previous'] = self.previous
