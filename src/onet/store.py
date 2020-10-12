@@ -497,10 +497,58 @@ class DirectoryNode(object):
 		ents.from_dict(entf)
 		for each in ents.entries:
 			print (each)
-			self.entries[each['filename']] = self.get_cache(each)  # TODO convert to Node
+			if type(each) is datatypes.NormalEntry:
+				found_key = self.find_key(each.uuid)
+				#
+				key1 = self.store.h.resolve_key(found_key)
+				po = self.store.h.openReader(key1, "Page.onet")
+				node = self.read_page_file(po, each)
+				#
+				ver, attr, filename = self.read_version(each, found_key)
+				node.version = ver
+				node.attr = attr
+				node.filename = filename
+				#
+				self.entries[filename] = node
+				ver.attributes_object = attr
+			else:
+				raise ValueError(each)
+			# self.entries[entry['filename']] = self.get_cache(entry)  # TODO convert to Node
+	
+	def read_version(self, entry, path_str):
+		from . import datatypes
 		
-	def get_cache(self, entry):
-		pass
+		# key1 = self.store.h.resolve_key(path_str)
+		dp = histore.DirectoryPage(path_str, self.store.h)
+		rdr = dp.openReader("%s.version" % entry.uuid)
+		try:
+			rd = rdr.read().decode()
+			ver_dict = toml.loads(rd)
+			ver = datatypes.Version(None, None, None, None)
+			ver.from_dict(ver_dict)
+		finally:
+			rdr.close()
+		
+		rdr = dp.openReader("%s.attr" % ver.attributes)
+		try:
+			rd = rdr.read().decode()
+			attr_dict = toml.loads(rd)
+			attr = datatypes.Attributes(None)
+			attr.from_dict(attr_dict)
+			attr.version = ver
+			# print (toml.dumps(attr.to_dict()))
+		finally:
+			rdr.close()
+			
+		return (ver, attr, attr.attr['filename'].value)
+
+	
+	def find_key(self, uuid):
+		x = self.store._cache.get_version(uuid)
+		assert len(x) == 1
+		x = x[0]
+		return x.key
+
 
 class FileNode(object):
 	content_page: histore.DirectoryPage
