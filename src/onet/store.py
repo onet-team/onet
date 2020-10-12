@@ -509,8 +509,11 @@ class DirectoryNode(object):
 				#
 				ver, attr, filename = self.read_version(each, found_key)
 				node.version = ver
+				if ver.name is not None:
+					node.version_name = ver.name
 				node.attr = attr
 				node.filename = filename
+				node.path_string = found_key
 				#
 				self.entries[filename] = node
 				ver.attributes_object = attr
