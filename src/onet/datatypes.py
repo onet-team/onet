@@ -111,7 +111,10 @@ class Version:
 		self.acl = version['acl']
 		
 		info = d['info']
-		self.entries = info['entries']  # TODO what to do with this??
+		if 'entries' in info:
+			self.entries = info['entries']
+		else:
+			self.entries = None
 		self.attributes = info['attributes']
 		pass
 	
