@@ -33,7 +33,7 @@ class GUID(Base):
 
 
 class Cache:
-	def __init__(self, path, space_name):
+	def __init__(self, path, space_name, store):
 		self.parent_path = path
 		self.space_name  = space_name
 		self.path = FilePath(path, space_name, "cache.sqlite")

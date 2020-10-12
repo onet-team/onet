@@ -46,7 +46,7 @@ def new_hex_uuid():
 class OnetStore:
 	def __init__(self, path):
 		self.stat_cache = {}
-		self._cache = []
+		# self._cache = []
 		self._path = path
 		if not FilePath(path).exists():
 			FilePath(path).mkdir(parents=True)
@@ -57,7 +57,7 @@ class OnetStore:
 	
 	def _read_cache(self):
 		from .cache import Cache
-		self._cache = Cache(FilePath(self._path), self._space_name)
+		self._cache = Cache(FilePath(self._path), self._space_name, self)
 		
 	# def _read_cache(self, key):
 	# 	po = self.h.openReader(key, ".cache")
