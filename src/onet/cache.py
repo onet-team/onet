@@ -54,3 +54,11 @@ class Cache:
 	def record_guid(self, uuid, key, type_):
 		x = GUID(uuid=uuid, key=key, type=type_)
 		self.session.add(x)
+	
+	def get_version(self, uuid):
+		x = self.session.query(UUID).filter(UUID.uuid == uuid, UUID.type == 'version').all()
+		return x
+	
+	def __del__(self):
+		self.session.commit()
+		# self.session.close()
