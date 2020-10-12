@@ -161,7 +161,24 @@ class HiStore(object):
 			y = {'type': 'content'}
 			fp.write(json.dumps(y))
 		return key.page.openWriter(filename)
-
+	
+	def validKeys(self):
+		"""
+		Implement a naive version for now
+		Should read a HiStore.info file at every level, or you could just walk the dirs
+		
+		:return: a list of valid key strings
+		"""
+		r = []
+		x = 0
+		while True:
+			dp = DirectoryPage(x, self)
+			if dp.exists():
+				r.append(dp.path_string)
+			else:
+				break
+			x = x + 1
+		return r
 
 class HiStoreWriter(object):
 	filename: str
