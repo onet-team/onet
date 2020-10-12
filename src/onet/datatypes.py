@@ -193,6 +193,7 @@ class NormalEntry(Entry):
 		r = {}
 		r['uuid'] = self.uuid
 		r['filename'] = self.filename
+		r['type'] = 'normal'
 		return r
 	
 class Chunks:
