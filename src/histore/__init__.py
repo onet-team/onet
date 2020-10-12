@@ -71,8 +71,12 @@ class DirectoryPage:
 			return None
 		r = Path(self.store.root, self.path, filename).exists()
 		return r
-
 	
+	def listInternal(self):
+		pth = Path(self.store.root, self.path)
+		x = [(x, x.parts[-1]) for x in pth.iterdir()]
+		return x
+
 class HiStoreKey:
 	page: DirectoryPage
 	
