@@ -55,7 +55,7 @@ class OnetStore:
 	
 	def _read_cache(self):
 		from .cache import Cache
-		self._cache = Cache()
+		self._cache = Cache(FilePath(self._path), self._space_name)
 		
 	# def _read_cache(self, key):
 	# 	po = self.h.openReader(key, ".cache")
