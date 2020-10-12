@@ -1,3 +1,4 @@
+import toml
 import json
 from typing import Dict, Any
 
@@ -387,7 +388,6 @@ class OnetStore:
 			print(10339, rd)
 			rdf.close()
 			acls = datatypes.Acls(None, None)
-			import toml
 			d = toml.loads(rd)
 			print(10344, d)
 			acls.from_dict(d)
@@ -437,7 +437,6 @@ class DirectoryNode(object):
 		wr.close()
 		#
 		from . import datatypes
-		import toml
 		#
 		acls = self.store.copy_acls_or_default(self, self.last_ver)
 		acl_uuid = new_hex_uuid()
@@ -491,7 +490,6 @@ class DirectoryNode(object):
 		rd = rr.read().decode()
 		rr.close()
 		from . import datatypes
-		import toml
 		entf = toml.loads(rd)
 		ents = datatypes.Entries(None)
 		ents.from_dict(entf)
