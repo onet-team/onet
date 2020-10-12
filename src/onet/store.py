@@ -50,6 +50,7 @@ class OnetStore:
 		if not FilePath(path).exists():
 			FilePath(path).mkdir(parents=True)
 		self._init_spaces()
+		self._read_cache()
 		self._init_default()
 		self._init_user()
 	
@@ -128,9 +129,22 @@ class OnetStore:
 		n.content_page = p
 		n.full_path = '.'
 		self.root_node = n
+		if self._cache._new_store:
+			self._reload_cache()
+			self._cache._new_store = False
 		if n.last_ver != '':
 			n.read_entries()
 		# print(97, n, n.__dict__)
+	
+	def _reload_cache(self):
+		for each_key in self.h.validKeys():
+			p = histore.DirectoryPage(each_key, self.h)
+			x = p.listInternal()
+			for (_, each) in x:
+				if each in ['HiStore.info', 'Page.onet']:
+					continue
+				uuid_, type_ = str.split(each, '.', maxsplit=1)
+				self._cache.record_uuid(uuid_, each_key, type_)
 	
 	def read_page_file(self, po, filename):
 		"""

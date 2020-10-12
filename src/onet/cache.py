@@ -37,8 +37,13 @@ class Cache:
 		self.parent_path = path
 		self.space_name  = space_name
 		self.path = FilePath(path, space_name, "cache.sqlite")
-		self.engine = create_engine('sqlite:///'+self.path, echo=True)
-	
+		self.engine = create_engine('sqlite:///'+str(self.path), echo=True)
+		self._new_store = False
+		
+		if not self.path.exists():
+			Base.metadata.create_all(self.engine)
+			self._new_store = True
+		
 		Session = sessionmaker(bind=self.engine)
 		self.session = Session()
 	
