@@ -280,7 +280,7 @@ class OnetStore:
 		else:
 			x = None
 			if str(param) in root_node.entries:
-				x = root_node.entries[param]
+				x = root_node.entries[str(param)]
 			s = OnetStat()
 			s.st_storage = root_node.store._storage
 			s.st_uuid = ''
