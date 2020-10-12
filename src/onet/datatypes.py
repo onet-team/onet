@@ -136,8 +136,10 @@ class Entries:
 		entrylist = d['entrylist']
 		count = entrylist['count']
 		for each in range(count):
-			entstr = 'entry-%d' % count
-			self.entries.add(d[entstr])
+			entstr = 'entry-%d' % (each+1)
+			entry_value = d[entstr]
+			# print(10141, entry_value)
+			self.entries.append(entry_value)
 
 	def add(self, entry):
 		self.entries.append(entry)
