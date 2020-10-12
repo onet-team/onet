@@ -166,8 +166,10 @@ class OnetStore:
 			
 			if node_type == 'Directory':
 				n = DirectoryNode(self, po.store.number, filename)
-			else:
+			elif node_type == 'File':
 				n = FileNode(self, po.store.number)
+			else:
+				raise ValueError(node_type)
 			n.guid = node_guid
 			n.last_ver = last_ver
 		except KeyError as e:
