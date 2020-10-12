@@ -20,7 +20,10 @@ class DirectoryPage:
 		self._flush_actions = []
 		self.number = number
 		self.store = store
-		self.path_string = number_to_path_string(number)
+		if type(number) is int:
+			self.path_string = number_to_path_string(number)
+		else:
+			self.path_string = number
 		self.path = Path(self.path_string)
 		
 	def exists(self):
