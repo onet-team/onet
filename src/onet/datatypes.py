@@ -77,6 +77,7 @@ class Version:
 	acl: str
 	attributes: str  # a pointer to an attr file
 	previous: list  # of uuids/versions of old versions
+	entries: str     # a pointer to an entries file
 	
 	def __init__(self, name, uuid, acl_uuid, node):
 		self.name = name
@@ -107,8 +108,13 @@ class Version:
 		self.acl = version['acl']
 		
 		info = d['info']
-		entries = info['entries']  # TODO what to do with this??
+		self.entries = info['entries']  # TODO what to do with this??
 		self.attributes = info['attributes']
+		pass
+	
+
+class InvalidEntryException(Exception):
+	pass
 
 
 class Entries:
@@ -139,7 +145,23 @@ class Entries:
 			entstr = 'entry-%d' % (each+1)
 			entry_value = d[entstr]
 			# print(10141, entry_value)
-			self.entries.append(entry_value)
+			entry_type = entry_value['type']
+			if entry_type == 'chunk':
+				entry = ChunkEntry()
+				entry.from_dict(entry_value)
+			elif entry_type == 'external':
+				entry = ExternalEntry()
+				entry.from_dict(entry_value)
+			elif entry_type == 'storage':
+				entry = StorageEntry()
+				entry.from_dict(entry_value)
+			elif entry_type == 'normal':
+				entry = NormalEntry()
+				entry.from_dict(entry_value)
+			else:
+				raise InvalidEntryException(entry_value)
+
+			self.entries.append(entry)
 
 	def add(self, entry):
 		self.entries.append(entry)
@@ -151,34 +173,57 @@ class Entry:
 
 class ChunkEntry(Entry):
 	uuid: str
-	filename: str
-	key: str  # ??
+	# filename: str
+	# key: str  # ??
 	
 	def __init__(self):
 		pass
 
 	def to_dict(self):
 		r = {}
-		
+		r['uuid'] = self.uuid
 		return r
+	
+	def from_dict(self, d):
+		self.uuid = d['uuid']
+		assert d['type'] == 'chunk'
 
 
 class ExternalEntry(Entry):
+	"""
+	An entry where the content is stored on the filesystem
+	"""
 	uuid: str
 	filename: str
-	key: str # ??
+	# key: str # ??
 	
 	def __init__(self):
 		pass
+	
+	def from_dict(self, d):
+		self.uuid = d['uuid']
+		self.filename = d['filename']
+		assert d['type'] == 'external'
 
 
 class StorageEntry(Entry):
+	"""
+	:storage_name: The uuid of the external store to get file from
+	:uuid: The actual file  # TODO can this be a guid?
+	
+	:type storage_name: str
+	"""
 	uuid: str
-	filename: str
-	storage_name: str # ??
+	# filename: str
+	storage_name: str
 	
 	def __init__(self):
 		pass
+	
+	def from_dict(self, d):
+		self.uuid = d['uuid']
+		self.storage_name = d['storage_name']
+		assert d['type'] == 'storage'
 
 
 class NormalEntry(Entry):
@@ -196,6 +241,11 @@ class NormalEntry(Entry):
 		r['type'] = 'normal'
 		return r
 	
+	def from_dict(self, d):
+		self.uuid = d['uuid']
+		assert d['type'] == 'normal'
+	
+	
 class Chunks:
 	pass
 
@@ -209,6 +259,13 @@ class AttributeValue:
 		self.value = value
 		self.type = type
 		self.acl = acl
+
+
+class InheritedAttr(object):
+	ref: str
+	uuid: str
+	
+	pass
 
 
 class Attributes:
@@ -238,9 +295,36 @@ class Attributes:
 				r[attrstr]['type'] = v.type
 			r[attrstr]['value'] = v.value
 			if v.acl:
-				r[attrstr]['acl'] = v.acl.name  # TODO make sure you call acl.to_dict before this
+				if type(v.acl) is str:
+					r[attrstr]['acl'] = v.acl
+				else:
+					r[attrstr]['acl'] = v.acl.name  # TODO make sure you call acl.to_dict before this
 			count += 1
 		return r
+	
+	def from_dict(self, d):
+		a = d['attributes']
+		count = a['count']
+		meta = d['meta']
+		if 'version' in meta:
+			self.version = meta['version']
+		if 'uuid' in meta:
+			self.version_uuid = meta['uuid']
+		attr = Attributes(self.version or self.version_uuid)
+		for each in range(int(count)):
+			attrstr = "attr-%d" % each
+			attrd = d[attrstr]
+			if "inherited" in attrd:
+				attr = InheritedAttr()
+				attr.ref = attrd['ref']
+				attr.uuid = attrd['uuid']
+			else:
+				value1 = attrd['value']
+				attr_value = AttributeValue(value1)
+				if "acl" in attrd:
+					attr_value.acl = attrd['acl']
+				attr.put(attrd['name'], attr_value)
+				self.attr[attrd['name']] = attr_value
 
 
 __all__ = ['User', 'Acls', 'Acl', 'InheritedAcl', 'Version',
