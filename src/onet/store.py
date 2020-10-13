@@ -251,7 +251,7 @@ class OnetStore:
 					return s  # TODO or x ??
 				else:
 					if x.is_dir():  # TODO and has listing permissions
-						node = x
+						node = x.node
 					else:
 						print (20206, path)
 						raise NotADirectoryError
