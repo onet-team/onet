@@ -462,6 +462,12 @@ class DirectoryNode(object):
 	def exists(self):
 		if self.last_ver == '':
 			return False
+		try:
+			x = getattr(self, 'content_page')
+		except AttributeError:
+			dp = histore.DirectoryPage(self.key, self.store.h)
+			#return dp.hasContent('%s.version'%self.last_ver)
+			self.content_page = dp
 		if self.content_page.hasContent('%s.version'%self.last_ver):
 			return True
 		assert False
