@@ -376,6 +376,8 @@ class OnetStore:
 			return False
 		if parent.last_ver == '':
 			return False
+		if not parent.entries_read:
+			parent.read_entries()
 		if path in parent.entries:
 			return True
 	
@@ -446,12 +448,14 @@ class DirectoryNode(object):
 	store: OnetStore
 	filename: str
 	# entries: Dict[str, datatypes.Entry]
+	entries_read: bool
 	
 	def __init__(self, store, key, filename):
 		self.store = store
 		self.key = key
 		self.filename = filename
 		self.entries = {}
+		self.entries_read = False
 		
 	def exists(self):
 		if self.last_ver == '':
@@ -556,7 +560,7 @@ class DirectoryNode(object):
 				ver.attributes_object = attr
 			else:
 				raise ValueError(each)
-			# self.entries[entry['filename']] = self.get_cache(entry)  # TODO convert to Node
+		self.entries_read = True
 	
 	def read_version(self, entry, path_str):
 		from . import datatypes
