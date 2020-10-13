@@ -205,6 +205,10 @@ class HiStoreWriter(object):
 			self.fp = None
 
 
+class HandleError(Exception):
+	pass
+
+
 class HiStoreReader(object):
 	filename: str
 	path: Path
@@ -228,7 +232,7 @@ class HiStoreReader(object):
 			else:
 				return self.fp.read(amount)
 		else:
-			return b''
+			raise HandleError(self)
 
 	def close(self):
 		if self.fp is not None:
