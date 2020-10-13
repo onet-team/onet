@@ -366,6 +366,11 @@ class OnetStore:
 			return directory_node
 
 	def exists_in_parent(self, parent, path):
+		"""
+
+		:type path: str
+		:type parent: DirectoryNode
+		"""
 		# print ("TODO exists_in_parent", parent, path)
 		if not parent.exists():
 			return False
