@@ -417,6 +417,7 @@ class OnetStore:
 		"""
 
 		:type parent: DirectoryNode
+		:type version: str #onet.datatypes.Version
 		"""
 		from . import datatypes
 		if parent.last_ver == '':
@@ -426,13 +427,13 @@ class OnetStore:
 			return acls
 		else:
 			print ("TODO copy acls")
-			rdf = parent.content_page.openReader(parent.last_ver+".acls")
-			rd = rdf.read()
-			rd = rd.decode()
-			print(10339, rd)
+			rdf = parent.content_page.openReader(parent.version.acl+".acls")
+			acls_raw = rdf.read()
+			acls_decoded = acls_raw.decode()
+			print(10339, acls_decoded)
 			rdf.close()
 			acls = datatypes.Acls(None, None)
-			d = toml.loads(rd)
+			d = toml.loads(acls_decoded)
 			print(10344, d)
 			acls.from_dict(d)
 			return acls
