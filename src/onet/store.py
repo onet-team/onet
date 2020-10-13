@@ -450,6 +450,7 @@ class DirectoryNode(object):
 	filename: str
 	# entries: Dict[str, datatypes.Entry]
 	entries_read: bool
+	full_path: Path
 	
 	def __init__(self, store, key, filename):
 		self.store = store
