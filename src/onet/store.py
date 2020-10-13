@@ -21,14 +21,16 @@ class OnetStat(object):
 	def is_dir(self):
 		if not self.exists():
 			return False
-		if self.st_uuid == '':
-			return False
-		return True
+		if getattr(self, 'node'):
+			return self.node.is_dir()
+		return False
 	
 	def exists(self):
 		if self.st_uuid == '':
 			return False
-		return True
+		if getattr(self, 'node'):
+			return True
+		return False
 
 
 class DirectoryNotEmpty(Exception):
