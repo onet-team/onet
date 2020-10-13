@@ -309,7 +309,7 @@ class OnetStore:
 			if not skip_if_exists:
 				raise FileExistsError
 			else:
-				return self.resolve(Path(parent, filename))
+				return self.resolve_from(parent, filename)
 		else:
 			print ("TODO mkdir_simple", parent, filename)
 			parent: DirectoryNode
@@ -379,9 +379,37 @@ class OnetStore:
 		if path in parent.entries:
 			return True
 	
-	def resolve(self, path):
-		print ("TODO resolve ", path)
-		return path
+	def resolve(self, path: FilePath):
+		"""
+
+		:rtype: DirectoryNode
+		"""
+		print("TODO resolve ", path.parts)
+		parent = self.root_node
+		for each in path.parts:
+			if self.exists_in_parent(parent, each):
+				parent = parent.entries[each]
+			else:
+				return None
+		return parent
+	
+	def resolve_from(self, root_node, path: Path):
+		"""
+
+		:param path:
+		:type root_node: DirectoryNode
+		:rtype: DirectoryNode
+		"""
+		if type(path) is not Path:
+			path = Path(path)
+		print("TODO resolve ", path.parts)
+		parent = root_node
+		for each in path.parts:
+			if self.exists_in_parent(parent, each):
+				parent = parent.entries[each]
+			else:
+				return None
+		return parent
 	
 	def copy_acls_or_default(self, parent, version):
 		"""
