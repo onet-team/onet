@@ -562,6 +562,7 @@ class DirectoryNode(object):
 					node.version_name = ver.name
 				node.attr = attr
 				node.filename = filename
+				node.full_path = Path(self.full_path, filename)
 				node.path_string = found_key
 				#
 				self.entries[filename] = node
