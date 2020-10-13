@@ -245,6 +245,7 @@ class OnetStore:
 			for each in l[1:]:
 				if each == '.':
 					continue
+				each = Path(each).parts[-1]
 				x = self.stat_one(node, each)
 				if not x.exists():
 					return s  # TODO or x ??
@@ -259,6 +260,8 @@ class OnetStore:
 		return s
 	
 	def remove(self, path: Path, recursive=False):
+		if not type(path) is Path:
+			path = Path(path)
 		s = self.stat(path)
 		if s.exists():
 			if s.is_dir():
@@ -293,7 +296,7 @@ class OnetStore:
 				s.node = x
 		return s
 	
-	def list(self, path):
+	def list(self, path: Path):
 		print("TODO list here")
 		x = self.resolve(path)
 		if x.is_dir():
