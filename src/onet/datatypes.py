@@ -27,7 +27,7 @@ class Acls:
 		r['acl'] = acl
 		for each in range(count):
 			acl = self.acls[each]
-			aclstr = 'acl-%d' % count
+			aclstr = 'acl-%d' % each
 			r[aclstr] = acl.to_dict()
 			acl.name = aclstr
 		if len(self.inherits):
@@ -138,7 +138,7 @@ class Entries:
 		r['entrylist'] = entrylist
 		for each in range(count):
 			entry = self.entries[each]
-			entstr = 'entry-%d' % count
+			entstr = 'entry-%d' % each
 			r[entstr] = entry.to_dict()
 		return r
 
