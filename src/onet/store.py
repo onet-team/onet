@@ -300,10 +300,9 @@ class OnetStore:
 		print("TODO list here")
 		x = self.resolve(path)
 		if x.is_dir():
-			pass
+			return x.entries.keys()
 		else:
 			raise NotADirectoryError
-		pass
 	
 	def mkdir_simple(self, parent, filename, skip_if_exists=False):
 		if self.exists_in_parent(parent, filename):
