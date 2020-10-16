@@ -40,6 +40,22 @@ class Acls:
 		return r
 
 	def from_dict(self, d):
+		dacl = d['acl']
+		order = dacl['order']
+		if order == 'deny':
+			self.deny_first = True
+		elif order == 'allow':
+			self.deny_first = False
+		else:
+			raise ValueError(order)
+		count = int(dacl['count'])
+		for each in range(count):
+			aclstr = 'acl-%d' % count
+			acld = d[aclstr]
+			type_ = acld['type']
+			principal = acld['principal']
+			acl = Acl(type_, principal)
+		# TODO inherits
 		pass
 
 class Acl:
