@@ -429,15 +429,19 @@ class OnetStore:
 			return acls
 		else:
 			print ("TODO copy acls")
-			rdf = parent.content_page.openReader(parent.version.acl+".acls")
-			acls_raw = rdf.read()
-			acls_decoded = acls_raw.decode()
-			print(10339, acls_decoded)
-			rdf.close()
 			acls = datatypes.Acls(None, None)
-			d = toml.loads(acls_decoded)
-			print(10344, d)
-			acls.from_dict(d)
+			rdf = parent.content_page.openReader(parent.version.acl+".acls")
+			if rdf.fp is not None:
+				acls_raw = rdf.read()
+				acls_decoded = acls_raw.decode()
+				print(10339, acls_decoded)
+				rdf.close()
+				d = toml.loads(acls_decoded)
+				print(10344, d)
+				acls.from_dict(d)
+			else:
+				acl = datatypes.Acl('all', self.u)
+				acls.acls.append(acl)
 			return acls
 
 
