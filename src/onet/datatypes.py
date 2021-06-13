@@ -164,6 +164,7 @@ class Entries:
 		if not ('entrylist' in d): return
 		#
 		entrylist = d['entrylist']
+		self.version = entrylist['version']
 		count = entrylist['count']
 		for each in range(count):
 			entstr = 'entry-%d' % (each+1)
