@@ -50,13 +50,15 @@ class Acls:
 			raise ValueError(order)
 		count = int(dacl['count'])
 		for each in range(count):
-			aclstr = 'acl-%d' % count
+			aclstr = 'acl-%d' % each
 			acld = d[aclstr]
 			type_ = acld['type']
 			principal = acld['principal']
-			acl = Acl(type_, principal)
+			acl = Acl(type_, User(principal))
+			self.acls.append(acl)
 		# TODO inherits
 		pass
+
 
 class Acl:
 	type: str
