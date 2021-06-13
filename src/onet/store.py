@@ -381,6 +381,7 @@ class OnetStore:
 			parent.read_entries()
 		if path in parent.entries:
 			return True
+		return False
 	
 	def resolve(self, path: FilePath):
 		"""
