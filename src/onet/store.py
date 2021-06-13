@@ -324,7 +324,6 @@ class OnetStore:
 			wr.close()
 			#
 			from . import datatypes
-			acls = self.copy_acls_or_default(parent, last_version)
 			acl_uuid = new_hex_uuid()
 			#
 			directory_node = DirectoryNode(self, key.page.number, filename)
@@ -335,7 +334,9 @@ class OnetStore:
 			directory_node.path = key.path
 			directory_node.content_page = key.page
 			#
-			version = datatypes.Version("v1", last_version, acl_uuid, directory_node)
+			version = datatypes.Version(name=acl_uuid, uuid=last_version, acl_uuid=acl_uuid, node=directory_node)
+			parent.version = version
+			acls = self.copy_acls_or_default(parent, last_version)
 			attr = datatypes.Attributes(version)
 			attr.uuid = version.uuid
 			print(10283, acls.acls)
