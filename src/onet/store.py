@@ -368,11 +368,11 @@ class OnetStore:
 
 	def exists_in_parent(self, parent, path):
 		"""
-
 		:type path: str
 		:type parent: DirectoryNode
 		"""
 		# print ("TODO exists_in_parent", parent, path)
+		path = Path(path).parts[-1]
 		if not parent.exists():
 			return False
 		if parent.last_ver == '':
