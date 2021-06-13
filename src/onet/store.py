@@ -505,9 +505,9 @@ class DirectoryNode(object):
 		else:
 			import re
 			x = re.match(r'v(\d+)', self.last_ver)
-			if len(x.groups()):
+			if x is not None and len(x.groups()):
 				ver = int(x.group(1))+1
-				ver_name = 'v%d'%ver
+				ver_name = 'v%d' % ver
 			else:
 				ver_name = last_ver
 		version = datatypes.Version(ver_name, last_ver, acl_uuid, self)
