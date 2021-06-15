@@ -161,9 +161,6 @@ class HiStore(object):
 		:param key:
 		:type filename: basestring
 		"""
-		with open(Path(self.root, key.page.path, "HiStore.info"), 'w') as fp:
-			y = {'type': 'content'}
-			fp.write(json.dumps(y))
 		return key.page.openWriter(filename)
 	
 	def validKeys(self):
@@ -192,6 +189,7 @@ class HiStoreWriter(object):
 	def __init__(self, filename, path, store):
 		self.filename = filename
 		self.path = Path(path, filename)
+		self.key_path = path
 		self.store = store
 		self.fp = open(self.path, 'wb')
 
@@ -205,6 +203,10 @@ class HiStoreWriter(object):
 
 	def close(self):
 		if self.fp is not None:
+			with open(Path(self.key_path, "HiStore.info"), 'w') as fp:
+				y = {'type': 'content'}
+				fp.write(json.dumps(y))
+
 			self.fp.close()
 			self.fp = None
 
