@@ -39,7 +39,7 @@ class LeafPage(object):
 			# TODO Support reservation on Content not whole directory
 			#
 			if x['type']=='reservation':
-				k = HiStoreKey(self.path_string, x['type'], timedelta(seconds=30), self.path)
+				k = HiStoreKey(self.path_string, x['type'], timedelta(seconds=self.store._default_timeout), self.path)
 			else:
 				k = HiStoreKey(self.path_string, x['type'], 0, self.path)
 			return k
@@ -99,6 +99,7 @@ class HiStore(object):
 	pagecache: Dict[int, LeafPage]
 	
 	def __init__(self, root: str):
+		self._default_timeout = 30 # seconds
 		self.root = root
 		self.pagecache = {}
 		self.freepage = None
@@ -107,12 +108,12 @@ class HiStore(object):
 
 	def allocate(self) -> HiStoreKey:
 		p = self.find_next_page()
-		k = HiStoreKey(p.path_string, 'reservation', timedelta(seconds=30), p)
+		k = HiStoreKey(p.path_string, 'reservation', timedelta(seconds=self._default_timeout), p)
 		return k
 	
 	def resolve(self, key: int) -> HiStoreKey:
 		p, f = self._get_page(key)
-		k = HiStoreKey(p.path_string, 'content', timedelta(seconds=30), p)
+		k = HiStoreKey(p.path_string, 'content', timedelta(seconds=self._default_timeout), p)
 		return k
 
 	def resolve_key(self, skey: str) -> HiStoreKey:
