@@ -27,7 +27,7 @@ def walk(p):
 
 import histore
 
-# p = histore.DirectoryPage(0, None)
+# p = histore.LeafPage(0, None)
 # print(100, p.path)
 # h = histore.HiStore('histore')
 # print(101, h.resolve_key(p.path_string))

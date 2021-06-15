@@ -114,7 +114,7 @@ class OnetStore:
 	
 	def _init_default(self):
 		h = histore.HiStore(FilePath(self._path, self._space_name, 'histore'))
-		p = histore.DirectoryPage(0, h)
+		p = histore.LeafPage(0, h)
 		# print(100, p.path, p.path_string)
 		key = h.resolve_key(p.path_string)
 		# print(101, key)
@@ -141,7 +141,7 @@ class OnetStore:
 	
 	def _reload_cache(self):
 		for each_key in self.h.validKeys():
-			p = histore.DirectoryPage(each_key, self.h)
+			p = histore.LeafPage(each_key, self.h)
 			x = p.listInternal()
 			for (_, each) in x:
 				if each in ['HiStore.info', 'Page.onet']:
@@ -188,7 +188,7 @@ class OnetStore:
 		return l
 	
 	def _write_default(self):
-		p = histore.DirectoryPage(0, self.h)
+		p = histore.LeafPage(0, self.h)
 		key = self.h.resolve_key(p.path_string)
 		wr = self.h.openWriter(key, "Page.onet")
 		wr.write("Type: Directory\n")
@@ -446,7 +446,7 @@ class OnetStore:
 
 
 class DirectoryNode(object):
-	content_page: histore.DirectoryPage
+	content_page: histore.LeafPage
 	guid: str
 	histore_key: histore.HiStoreKey
 	key: int
@@ -471,7 +471,7 @@ class DirectoryNode(object):
 		try:
 			x = getattr(self, 'content_page')
 		except AttributeError:
-			dp = histore.DirectoryPage(self.key, self.store.h)
+			dp = histore.LeafPage(self.key, self.store.h)
 			self.content_page = dp
 		if self.content_page.hasContent('%s.version'%self.last_ver):
 			return True
@@ -487,7 +487,7 @@ class DirectoryNode(object):
 		:type version: onet.datatypes.Version
 		"""
 		last_ver = new_hex_uuid()
-		p = histore.DirectoryPage(self.key, self.store.h)
+		p = histore.LeafPage(self.key, self.store.h)
 		key = self.store.h.resolve_key(p.path_string)
 		wr = self.store.h.openWriter(key, "Page.onet")
 		wr.write("Type: Directory\n")
@@ -543,7 +543,7 @@ class DirectoryNode(object):
 		self.last_ver = last_ver
 
 	def read_entries(self):
-		p = histore.DirectoryPage(self.key, self.store.h)
+		p = histore.LeafPage(self.key, self.store.h)
 		key = self.store.h.resolve_key(p.path_string)
 		rr = self.store.h.openReader(key, "%s.entries" % self.last_ver)
 		rd = rr.read().decode()
@@ -580,7 +580,7 @@ class DirectoryNode(object):
 		from . import datatypes
 		
 		# key1 = self.store.h.resolve_key(path_str)
-		dp = histore.DirectoryPage(path_str, self.store.h)
+		dp = histore.LeafPage(path_str, self.store.h)
 		rdr = dp.openReader("%s.version" % entry.uuid)
 		try:
 			rd = rdr.read().decode()
@@ -612,7 +612,7 @@ class DirectoryNode(object):
 
 
 class FileNode(object):
-	content_page: histore.DirectoryPage
+	content_page: histore.LeafPage
 	guid: str
 	histore_key: histore.HiStoreKey
 	key: int

@@ -15,7 +15,7 @@ def number_to_path_string(number):
 	return p
 
 
-class DirectoryPage:
+class LeafPage(object):
 	def __init__(self, number, store):
 		self._flush_actions = []
 		self.number = number
@@ -77,8 +77,11 @@ class DirectoryPage:
 		x = [(x, x.parts[-1]) for x in pth.iterdir()]
 		return x
 
+	__all__ = ('_flush_actions', 'number', 'store', 'path_string', 'path')
+
+
 class HiStoreKey:
-	page: DirectoryPage
+	page: LeafPage
 	
 	def __init__(self, path, type_, expiry, page):
 		self.path = path
@@ -93,7 +96,7 @@ class HiStoreKey:
 	
 
 class HiStore(object):
-	pagecache: Dict[int, DirectoryPage]
+	pagecache: Dict[int, LeafPage]
 	
 	def __init__(self, root: str):
 		self.root = root
@@ -128,11 +131,11 @@ class HiStore(object):
 		
 		return self.freepage
 	
-	def _get_page(self, number, reservation=False) -> Tuple[DirectoryPage, bool]:
+	def _get_page(self, number, reservation=False) -> Tuple[LeafPage, bool]:
 		new_page = False
 		if number in self.pagecache:
 			return (self.pagecache[number], False)
-		p = DirectoryPage(number, self)
+		p = LeafPage(number, self)
 		x = p.read()
 		if x is None:
 			os.makedirs(Path(self.root, p.path), exist_ok=True)
@@ -172,7 +175,7 @@ class HiStore(object):
 		r = []
 		x = 0
 		while True:
-			dp = DirectoryPage(x, self)
+			dp = LeafPage(x, self)
 			if dp.exists():
 				r.append(dp.path_string)
 			else:
