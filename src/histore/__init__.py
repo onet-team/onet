@@ -44,7 +44,7 @@ class LeafPage(object):
 				k = HiStoreKey(self.path_string, x['type'], 0, self.path)
 			return k
 		
-	def flush(self):
+	def flush(self) -> List[Tuple]:
 		errs = []
 		for each in self._flush_actions:
 			b = each.act()
