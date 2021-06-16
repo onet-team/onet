@@ -83,6 +83,9 @@ class LeafPage(object):
 
 class HiStoreKey:
 	page: LeafPage
+	type: str  # content | reservation
+	path: str
+	expiry: timedelta
 	
 	def __init__(self, path, type_, expiry, page):
 		self.path = path
@@ -185,7 +188,7 @@ class HiStore(object):
 class HiStoreWriter(object):
 	filename: str
 	path: Path
-	store: HiStore
+	store: LeafPage
 	
 	def __init__(self, filename, path, store):
 		self.filename = filename
