@@ -94,7 +94,7 @@ class BranchPage:
 					self.parent.update(self.number, STATUS.DELETE)
 	
 	def unlink(self):
-		"""delete of CRUD"""
+		"""delete of CRUD."""
 		self.full_path.unlink()
 		self.full_path.parent.unlink()
 		
