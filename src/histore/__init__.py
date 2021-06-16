@@ -96,12 +96,15 @@ class BranchPage:
 	def unlink(self):
 		"""Delete of CRUD."""
 		self.full_path.unlink()
-		self.full_path.parent.unlink()
+		if not (str(self.full_path.parent) == self.store.root):
+			assert self.parent is None
+			self.full_path.parent.unlink()
 		
 	def persist(self):
 		if not self.dirty:
 			return
-		os.makedirs(self.full_path.parent, exist_ok=True)
+		if self.parent is not None:
+			os.makedirs(self.full_path.parent, exist_ok=True)
 		with open(self.full_path, 'w') as fp:
 			d = {'type': 'branch', 'allocated': tuple(self.allocated)}
 			fp.write(json.dumps(d))
