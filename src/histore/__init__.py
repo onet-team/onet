@@ -3,9 +3,10 @@ import json
 import os
 import types
 from datetime import timedelta
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from io import StringIO
-from typing import Any, Union, Dict, Tuple
+from typing import Any, Union, Dict, Tuple, Optional, List
+from enum import Enum, unique
 
 
 def number_to_path_string(number):
@@ -15,7 +16,110 @@ def number_to_path_string(number):
 	return p
 
 
+@unique
+class STATUS(Enum):
+	COMMIT = 1
+	DELETE = 2
+
+
+class BranchPage:
+	pending: bool
+	path: str
+	#store: HiStore
+	#parent: Optional[BranchPage]
+	full_path: Path
+	allocated: set
+	dirty: bool
+	
+	def __init__(self, path: str, store):
+		self.path = path
+		self.store = store
+		self.number = None
+		if len(path) == 0:
+			self.parent = None
+		else:
+			if len(path) > 1:
+				self.number = int(path[-2:], 16)
+			parent_page = str(PurePosixPath(path).parent)
+			if parent_page == '.':
+				parent_page = ''
+				# self.number = None
+			self.parent = store.get_branch_page(parent_page)
+		self.full_path = Path(store.root, self.path, "HiStore.info")
+		self.allocated = set()
+		self.dirty = False
+		self.pending = False
+		
+	def create(self):
+		assert not self.exists()
+		self.allocated = set()
+		self.dirty = True
+		self.persist()
+		
+	def read(self):
+		with open(self.full_path, 'r') as fp:
+			x = json.loads(fp.read())
+			
+			assert x['type'] == 'branch'
+			self.allocated = [int(y) for y in x['allocated']]
+			
+			# TODO verify allocateds are not empty (ie has HiStroe.info and >0 content entries)
+			# TODO verify sub-branches and add to store
+			
+			self.allocated = set(filter(lambda z: 0 <= z <= 256, self.allocated))
+
+	def update(self, number, status: STATUS):
+		# doesn't persist reservations (this is not a bug)
+		if status == STATUS.COMMIT:
+			old_len = len(self.allocated)
+			self.allocated.add(number)
+			new_len = len(self.allocated)
+			if old_len == new_len - 1:
+				self.dirty = True
+			else:
+				# assert False
+				pass
+			# self.dirty = True
+			if self.parent is not None:
+				self.parent.update(self.number, STATUS.COMMIT)
+		elif status == STATUS.DELETE:
+			assert number in self.allocated
+			self.allocated.remove(number)
+			if len(self.allocated) == 0:
+				# wait 30 seconds
+				self.pending = True
+				# and delete HiStore.info and dir
+				self.unlink()
+				if self.parent is not None:
+					self.parent.update(self.number, STATUS.DELETE)
+	
+	def unlink(self):
+		"""delete of CRUD"""
+		self.full_path.unlink()
+		self.full_path.parent.unlink()
+		
+	def persist(self):
+		if not self.dirty:
+			return
+		os.makedirs(self.full_path.parent, exist_ok=True)
+		with open(self.full_path, 'w') as fp:
+			d = {'type': 'branch', 'allocated': tuple(self.allocated)}
+			fp.write(json.dumps(d))
+		self.dirty = False
+		
+	def persist_all(self):
+		self.persist()
+		if self.parent is not None:
+			self.parent.persist_all()
+		
+	def exists(self):
+		return self.full_path.exists()
+	
+	
 class LeafPage(object):
+	branch: BranchPage
+	path_string: str
+	
 	def __init__(self, number, store):
 		self._flush_actions = []
 		self.number = number
@@ -101,14 +205,18 @@ class HiStoreKey:
 
 class HiStore(object):
 	pagecache: Dict[int, LeafPage]
+	branch_pages: Dict[str, BranchPage]
 	
 	def __init__(self, root: str):
 		self._default_timeout = 30 # seconds
 		self.root = root
 		self.pagecache = {}
+		self.branch_pages = {}
 		self.freepage = None
 		if not Path(root).exists():
 			os.makedirs(Path(root))
+		
+		self.root_braanch = self.get_branch_page('')
 
 	def allocate(self) -> HiStoreKey:
 		p = self.find_next_page()
@@ -141,8 +249,12 @@ class HiStore(object):
 		if number in self.pagecache:
 			return (self.pagecache[number], False)
 		p = LeafPage(number, self)
+		pb = str(PurePosixPath(p.path).parent)
+		p.branch = self.get_branch_page(pb)
 		x = p.read()
 		if x is None:
+			pb2 = int(p.path_string[:-2].replace('/', ''), 16)
+			p.branch.update(pb2, STATUS.COMMIT)
 			os.makedirs(Path(self.root, p.path), exist_ok=True)
 			with open(Path(self.root, p.path, "HiStore.info"), 'w') as fp:
 				if reservation:
@@ -152,6 +264,11 @@ class HiStore(object):
 					y = {'type': 'content'}
 				fp.write(json.dumps(y))
 			x = p.read()
+			p.branch.persist_all()
+		else:
+			pb2 = int(p.path_string[:-2].replace('/', ''), 16)
+			p.branch.update(pb2, STATUS.COMMIT)
+			p.branch.persist_all()
 		self.pagecache[number] = p
 		return (p, new_page)
 
@@ -185,6 +302,18 @@ class HiStore(object):
 			x = x + 1
 		return r
 
+	def get_branch_page(self, s):
+		if s in self.branch_pages.keys():
+			return self.branch_pages[s]
+		x = BranchPage(s, self)
+		if x.exists():
+			x.read()
+		else:
+			x.create()
+		self.branch_pages[s] = x
+		return x
+		
+
 class HiStoreWriter(object):
 	filename: str
 	path: Path
@@ -210,6 +339,10 @@ class HiStoreWriter(object):
 			with open(Path(self.key_path, "HiStore.info"), 'w') as fp:
 				y = {'type': 'content'}
 				fp.write(json.dumps(y))
+				
+			pb = int(str(self.key_path)[-2:], 16)
+			self.store.branch.update(pb, STATUS.COMMIT)
+			self.store.branch.persist_all()
 
 			self.fp.close()
 			self.fp = None
