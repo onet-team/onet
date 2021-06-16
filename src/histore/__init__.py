@@ -26,7 +26,7 @@ class LeafPage(object):
 			self.path_string = number
 		self.path = Path(self.path_string)
 		
-	def exists(self):
+	def exists(self) -> bool:
 		return Path(self.store.root, self.path, "HiStore.info").exists()
 	
 	def read(self):  # -> Optional[HiStoreKey]:
