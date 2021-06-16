@@ -77,7 +77,8 @@ class LeafPage(object):
 		x = [(x, x.parts[-1]) for x in pth.iterdir()]
 		return x
 
-	__all__ = ('_flush_actions', 'number', 'store', 'path_string', 'path')
+	__all__ = ('_flush_actions', 'number', 'store', 'path_string', 'path',
+	           'exists', 'read', 'flush', 'openReader', 'openWriter', 'hasContent', 'listInternal')
 
 
 class HiStoreKey:
