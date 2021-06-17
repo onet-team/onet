@@ -554,7 +554,7 @@ class DirectoryNode(object):
 		ents.from_dict(entf)
 		for each in ents.entries:
 			print (each)
-			if type(each) is datatypes.NormalEntry:
+			if isinstance(each, datatypes.NormalEntry):
 				found_key = self.find_key(each.uuid)
 				#
 				key1 = self.store.h.resolve_key(found_key)
