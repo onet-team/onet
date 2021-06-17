@@ -66,7 +66,7 @@ class BranchPage:
 			# TODO verify allocateds are not empty (ie has HiStroe.info and >0 content entries)
 			# TODO verify sub-branches and add to store
 			
-			self.allocated = set(filter(lambda z: 0 <= z <= 256, self.allocated))
+			self.allocated = set(filter(lambda z: 0 <= z <= 255, self.allocated))
 
 	def update(self, number, status: STATUS):
 		# doesn't persist reservations (this is not a bug)
