@@ -111,6 +111,13 @@ class OnetStore:
 		# print([x["default"] for x in spaces["spaces"].keys()])
 		self._storage = y[0][1]
 		self._space_name = y[0][0]
+		
+		if True:
+			spacex = FilePath(self._path, self._space_name)
+			if not spacex.exists():
+				spacex.mkdir()
+				with open(FilePath(spacex, "space_id.txt"), 'w') as spacefp:
+					spacefp.writelines([self._storage])
 	
 	def _init_default(self):
 		h = histore.HiStore(FilePath(self._path, self._space_name, 'histore'))
