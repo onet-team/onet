@@ -1,2 +1,3 @@
 [run]
+source=python
 relative_files = True
