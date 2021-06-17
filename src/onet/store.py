@@ -1,3 +1,5 @@
+from enum import Enum
+
 import toml
 import json
 from typing import Dict, Any
@@ -609,16 +611,34 @@ class DirectoryNode(object):
 			rdr.close()
 			
 		return (ver, attr, attr.attr['filename'].value)
-
 	
-	def find_key(self, uuid):
-		x = self.store._cache.get_version(uuid)
-		assert len(x) == 1
-		x = x[0]
-		return x.key
+	def find_key(self, uuid1):
+		x = self.store._cache.get_version(uuid1)
+		if len(x) == 1:
+			x = x[0]
+			return x.key
+		elif len(x) == 0:
+			raise KeyError
+		elif len(x) > 1:
+			raise IllegalStateError((IllegalState.TOO_MANY_UUIDS, uuid1, x))
+		else:  # negative number
+			raise ConsistencyError
 
 
-class FileNode(object):
+class ConsistencyError(Exception):
+	pass
+
+
+class IllegalState(Enum):
+	TOO_MANY_UUIDS = 1
+
+
+class IllegalStateError(Exception):
+	def __init__(self, state):
+		self.state = state
+
+
+class FileNode(AbstractNode):
 	content_page: histore.LeafPage
 	guid: str
 	histore_key: histore.HiStoreKey
