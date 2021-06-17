@@ -269,7 +269,7 @@ class OnetStore:
 		return s
 	
 	def remove(self, path: Path, recursive=False):
-		if not type(path) is Path:
+		if not isinstance(path, Path):
 			path = Path(path)
 		s = self.stat(path)
 		if s.exists():
