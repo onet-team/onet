@@ -24,6 +24,7 @@ class LeafPage(object):
 			self.path_string = number_to_path_string(number)
 		else:
 			self.path_string = number
+		assert len(self.path_string) == 11
 		self.path = Path(self.path_string)
 		
 	def exists(self) -> bool:
