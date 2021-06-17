@@ -212,12 +212,12 @@ class OnetStore:
 	
 	def import_dir_stat(self, path: Path, stat, move=False):
 		c = (stat.st_dev, stat.st_ino)
-		print("import_dir_stat", path, stat, type(stat), oct(stat.st_mode))
+		print("import_dir_stat", path, stat, type(stat), oct(stat.st_mode), c)
 		pass
 	
 	def import_file_stat(self, path: Path, stat, move=False):
 		c = (stat.st_dev, stat.st_ino)
-		print("import_file_stat", path)
+		print("import_file_stat", path, c)
 		pass
 	
 	def exists(self, path: Path):
