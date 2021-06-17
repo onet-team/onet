@@ -324,13 +324,9 @@ class OnetStore:
 			parent: DirectoryNode
 			
 			key = parent.store.h.allocate()
-			wr = self.h.openWriter(key, "Page.onet")
-			wr.write("Type: Directory\n")
 			node_guid = new_hex_uuid()
-			wr.write("URN: " + node_guid + "\n")
 			last_version = new_hex_uuid()
-			wr.write("Last-Version: " + last_version + "\n")
-			wr.close()
+			self.write_page_dot_onet(key, node_guid, last_version)
 			#
 			from . import datatypes
 			acl_uuid = new_hex_uuid()
@@ -358,6 +354,13 @@ class OnetStore:
 			parent.add(filename, directory_node, version=version, file_uuid=last_version)
 			#
 			return directory_node
+	
+	def write_page_dot_onet(self, key, node_guid, last_version):
+		wr = self.h.openWriter(key, "Page.onet")
+		wr.write("Type: Directory\n")
+		wr.write("URN: " + node_guid + "\n")
+		wr.write("Last-Version: " + last_version + "\n")
+		wr.close()
 	
 	def write_version_with_entries(self, key, version, last_version, acl_uuid, acls, attr, entries):
 		import toml
