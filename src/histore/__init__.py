@@ -5,7 +5,7 @@ import types
 from datetime import timedelta
 from pathlib import Path
 from io import StringIO
-from typing import Any, Union, Dict, Tuple
+from typing import Any, Union, Dict, Tuple, List
 
 
 def number_to_path_string(number):
