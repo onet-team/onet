@@ -10,11 +10,11 @@ jobs:
 
     - name: Unit tests
       run: |
-        python -m venv venv
+        python3 -m venv venv
         source venv/bin/activate
-        pip install Cython
-        pip install -r requirements.txt
-        python setup.py bdist_wheel
+        pip3 install Cython
+        pip3 install -r requirements.txt
+        python3 setup.py bdist_wheel
         coverage run -m unittest discover
 
     - name: Coveralls
