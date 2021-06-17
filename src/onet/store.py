@@ -353,28 +353,36 @@ class OnetStore:
 			version.attributes = attr.uuid
 			entries = datatypes.Entries(version.uuid)
 			#
-			import toml
-			fp = self.h.openWriter(key, acl_uuid+'.acls')
-			s = toml.dumps(acls.to_dict())
-			fp.write(s)
-			fp.close()
-			fp = self.h.openWriter(key, last_version+'.version')
-			s = toml.dumps(version.to_dict())
-			fp.write(s)
-			fp.close()
-			fp = self.h.openWriter(key, last_version+'.attr')
-			s = toml.dumps(attr.to_dict())
-			fp.write(s)
-			fp.close()
-			fp = self.h.openWriter(key, last_version+'.entries')
-			s = toml.dumps(entries.to_dict())
-			fp.write(s)
-			fp.close()
+			self.write_version_with_entries(key, version, last_version, acl_uuid, acls, attr, entries)
 			#
 			parent.add(filename, directory_node, version=version, file_uuid=last_version)
 			#
 			return directory_node
-
+	
+	def write_version_with_entries(self, key, version, last_version, acl_uuid, acls, attr, entries):
+		import toml
+		
+		h: histore.HiStore
+		
+		h = self.h
+		
+		fp = h.openWriter(key, acl_uuid + '.acls')
+		s = toml.dumps(acls.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = h.openWriter(key, last_version + '.version')
+		s = toml.dumps(version.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = h.openWriter(key, last_version + '.attr')
+		s = toml.dumps(attr.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = h.openWriter(key, last_version + '.entries')
+		s = toml.dumps(entries.to_dict())
+		fp.write(s)
+		fp.close()
+	
 	def exists_in_parent(self, parent, path):
 		"""
 		:type path: str
@@ -525,32 +533,40 @@ class DirectoryNode(object):
 		attr.put('filename', datatypes.AttributeValue(self.filename, acl=acls.acls[0]))
 		version.attributes = attr.uuid
 		#
-		fp = self.store.h.openWriter(key, acl_uuid + '.acls')
-		s = toml.dumps(acls.to_dict())
-		fp.write(s)
-		fp.close()
-		fp = self.store.h.openWriter(key, last_ver + '.version')
-		s = toml.dumps(version.to_dict())
-		fp.write(s)
-		fp.close()
-		fp = self.store.h.openWriter(key, last_ver + '.attr')
-		s = toml.dumps(attr.to_dict())
-		fp.write(s)
-		fp.close()
-		#
 		es = datatypes.Entries(version.uuid)
 		e = datatypes.NormalEntry()
 		e.uuid = file_uuid
 		e.filename = filename
 		es.add(e)
-		wr = self.store.h.openWriter(key, "%s.entries" % last_ver)
-		s = toml.dumps(es.to_dict())
-		wr.write(s)
-		wr.close()
+		es_to_dict = es.to_dict()
+		#
+		self.write_version_with_entries(key, version, last_ver, acl_uuid, acls, attr, es_to_dict)
 		#
 		self.entries[filename] = e
 		self.last_ver = last_ver
-
+	
+	def write_version_with_entries(self, key, version, last_ver, acl_uuid, acls, attr, es_to_dict):
+		store_h: histore.HiStore
+		
+		store_h = self.store.h
+		
+		fp = store_h.openWriter(key, acl_uuid + '.acls')
+		s = toml.dumps(acls.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = store_h.openWriter(key, last_ver + '.version')
+		s = toml.dumps(version.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = store_h.openWriter(key, last_ver + '.attr')
+		s = toml.dumps(attr.to_dict())
+		fp.write(s)
+		fp.close()
+		wr = store_h.openWriter(key, "%s.entries" % last_ver)
+		s = toml.dumps(es_to_dict)
+		wr.write(s)
+		wr.close()
+	
 	def read_entries(self):
 		p = histore.LeafPage(self.key, self.store.h)
 		key = self.store.h.resolve_key(p.path_string)
