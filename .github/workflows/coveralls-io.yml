@@ -1,0 +1,33 @@
+name: coveralls_push
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-python@v1
+
+    - name: Unit tests
+      run: |
+        python3 -m venv venv
+        source venv/bin/activate
+        pip3 install Cython wheel
+        pip3 install -r requirements.txt
+        python3 setup.py bdist_wheel
+        coverage run -m unittest discover
+
+    - name: Coveralls
+      uses: AndreMiras/coveralls-python-action@develop
+      with:
+        parallel: true
+        flag-name: Unit Test
+
+  coveralls_finish:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Coveralls Finished
+      uses: AndreMiras/coveralls-python-action@develop
+      with:
+        parallel-finished: true
