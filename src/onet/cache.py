@@ -1,11 +1,9 @@
+from pathlib import Path as FilePath
+
 from sqlalchemy import Column, Integer, String, Sequence
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-
-import sqlalchemy
-
-from pathlib import Path as FilePath
+from sqlalchemy.orm import sessionmaker
 
 Base = declarative_base()
 
