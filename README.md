@@ -1,3 +1,5 @@
+[![Coverage Status](https://coveralls.io/repos/github/onet-team/onet/badge.png?branch=main)](https://coveralls.io/github/onet-team/onet?branch=main)
+
 # onet
 
 [![HitCount](http://hits.dwyl.com/onet-team/onet.svg)](http://hits.dwyl.com/onet-team/onet)
