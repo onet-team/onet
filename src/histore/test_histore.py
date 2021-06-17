@@ -36,7 +36,7 @@ class TestSum(unittest.TestCase):
 			# import subprocess
 			# subprocess.call(['fdfind', '-d', '5'])
 			
-			i = input()
+			#i = input()
 	
 if __name__ == '__main__':
 	unittest.main()
