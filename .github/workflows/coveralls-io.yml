@@ -12,6 +12,7 @@ jobs:
       run: |
         python -m venv venv
         source venv/bin/activate
+        pip install Cython
         pip install -r requirements.txt
         python setup.py build-egg
         coverage run -m unittest discover
