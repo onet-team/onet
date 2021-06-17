@@ -10,7 +10,10 @@ jobs:
 
     - name: Unit tests
       run: |
-        pip install coverage
+        python -m venv venv
+        source venv/bin/activate
+        pip install -r requirements.txt
+        python setup.py build-egg
         coverage run -m unittest discover
 
     - name: Coveralls
