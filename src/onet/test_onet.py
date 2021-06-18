@@ -17,8 +17,8 @@ def walk(p):
 		
 		
 class TestOnet(unittest.TestCase):
-	def test_something(self):
-		self.assertEqual(True, False)
+	# def test_something(self):
+	# 	self.assertEqual(True, False)
 	
 	def test_import(self):
 		tmpdirname = "Onet-001"
