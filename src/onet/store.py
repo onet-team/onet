@@ -142,6 +142,7 @@ class OnetStore:
 		n = self.read_page_file(po, '/')  # TODO is this an appropriate filename?
 		n.histore_key = key
 		n.path = p.path
+		n.path_string = p.path_string
 		n.content_page = p
 		n.full_path = '.'
 		self.root_node = n
