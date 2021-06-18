@@ -557,7 +557,7 @@ class DirectoryNode(object):
 		#
 		self.write_version_with_entries(key, version, last_ver, acl_uuid, acls, attr, es_to_dict)
 		#
-		self.entries[filename] = e
+		self.entries[filename] = DirectoryNode(self.store, key, self.filename)
 		self.last_ver = last_ver
 	
 	def write_version_with_entries(self, key, version, last_ver, acl_uuid, acls, attr, es_to_dict):
