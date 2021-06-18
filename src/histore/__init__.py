@@ -215,6 +215,7 @@ class HiStoreWriter(object):
 			self.fp.close()
 			self.fp = None
 
+	__slots__ = ('filename', 'path', 'store', 'key_path', 'fp')
 
 class HandleError(Exception):
 	pass
