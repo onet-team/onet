@@ -480,6 +480,7 @@ class DirectoryNode(object):
 	histore_key: histore.HiStoreKey
 	key: int
 	last_ver: str
+	path_string: str
 	path: Path
 	store: OnetStore
 	filename: str
@@ -488,6 +489,7 @@ class DirectoryNode(object):
 	full_path: Path
 	
 	def __init__(self, store, key, filename):
+		self.path_string = None
 		self.store = store
 		self.key = key
 		self.filename = filename
@@ -680,7 +682,8 @@ class FileNode(AbstractNode):
 	last_ver: str
 	path: Path
 	store: OnetStore
-	
+	path_string: str
+
 	def __init__(self, store, key):
 		self.store = store
 		self.key = key
