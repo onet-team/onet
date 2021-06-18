@@ -168,7 +168,7 @@ class Entries:
 		self.version = entrylist['version']
 		count = entrylist['count']
 		for each in range(count):
-			entstr = 'entry-%d' % (each+1)
+			entstr = 'entry-%d' % (each)
 			entry_value = d[entstr]
 			# print(10141, entry_value)
 			entry_type = entry_value['type']
