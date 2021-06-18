@@ -703,7 +703,10 @@ class DirectoryNode(AbstractNode):
 			raise IllegalStateError((IllegalState.TOO_MANY_UUIDS, uuid1, x))
 		else:  # negative number
 			raise ConsistencyError
-
+	
+	__slots__ = (
+		'content_page', 'guid', 'histore_key', 'key', 'last_ver', 'path_string', 'path', 'store', 'filename', 'entries',
+		'entries_read', 'full_path')
 
 class ConsistencyError(Exception):
 	pass
