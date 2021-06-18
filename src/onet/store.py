@@ -317,12 +317,26 @@ class OnetStore:
 				x = root_node.entries[str(param)]
 			s = OnetStat()
 			s.st_storage = root_node.store._storage
-			s.st_uuid = ''
-			if x is not None:
+			if hasattr(x, 'uuid'):         # NormalEntry
+				uuid1 = x.uuid
+			else:
+				uuid1 = x.last_ver  # version.uuid
+			s.st_uuid = uuid1
+			from . import datatypes
+			if isinstance(x, DirectoryNode):
 				s.st_uuid = x.last_ver
 				s.st_guid = x.guid
 				s.st_key = x.path_string
 				s.node = x
+			elif isinstance(x, datatypes.NormalEntry):
+				assert False
+			elif isinstance(x, FileNode):
+				s.st_uuid = x.last_ver
+				s.st_guid = x.guid
+				s.st_key = x.path_string
+				s.node = x
+			else:
+				assert False
 		return s
 	
 	def list(self, path: Path):
