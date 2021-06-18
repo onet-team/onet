@@ -1,5 +1,5 @@
 # datatypes.py
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class User:
@@ -95,7 +95,7 @@ class Version:
 	acl: str
 	attributes: str  # a pointer to an attr file
 	previous: list  # of uuids/versions of old versions
-	entries: str     # a pointer to an entries file
+	entries: Optional[str]     # a pointer to an entries file
 	
 	def __init__(self, name, uuid, acl_uuid, node):
 		self.name = name
@@ -104,6 +104,7 @@ class Version:
 		self.node = node
 		self.previous = []
 		self.attributes = ''
+		self.entries = None
 	
 	def to_dict(self):
 		r = {}
