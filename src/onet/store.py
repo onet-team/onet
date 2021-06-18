@@ -19,6 +19,7 @@ class OnetStat(object):
 	st_owner: str  # uuid
 	st_uuid: str
 	st_guid: str
+	# node: AbstractNode
 	
 	def is_dir(self):
 		if not self.exists():
@@ -34,7 +35,7 @@ class OnetStat(object):
 			return True
 		return False
 	
-	__slots__ = ('st_mode', 'st_key', 'st_storage', 'st_owner', 'st_uuid', 'st_guid')
+	__slots__ = ('st_mode', 'st_key', 'st_storage', 'st_owner', 'st_uuid', 'st_guid', 'node')
 
 
 class DirectoryNotEmpty(Exception):
