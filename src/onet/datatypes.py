@@ -268,10 +268,11 @@ class NormalEntry(Entry):
 		return r
 	
 	def from_dict(self, d):
-		self.uuid = d['uuid']
 		assert d['type'] == 'normal'
+		self.uuid = d['uuid']
+		self.filename = d['filename']
 	
-	
+
 class Chunks:
 	pass
 
