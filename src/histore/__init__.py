@@ -202,7 +202,7 @@ class HiStoreWriter(object):
 		if content is not None:
 			if offset is not None:
 				self.fp.seek(offset)
-		if type(content) is str:
+		if isinstance(content, str):
 			content = content.encode()  # convert to bytes
 		self.fp.write(content)
 
