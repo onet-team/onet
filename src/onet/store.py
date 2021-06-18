@@ -387,6 +387,13 @@ class OnetStore:
 		s = toml.dumps(entries.to_dict())
 		fp.write(s)
 		fp.close()
+		
+		keys = key.page.path_string
+
+		self._cache.record_uuid(acl_uuid, keys, 'acls')
+		self._cache.record_uuid(last_version, keys, 'version')
+		self._cache.record_uuid(last_version, keys, 'attr')
+		self._cache.record_uuid(last_version, keys, 'entries')
 	
 	def exists_in_parent(self, parent, path):
 		"""
@@ -571,6 +578,12 @@ class DirectoryNode(object):
 		s = toml.dumps(es_to_dict)
 		wr.write(s)
 		wr.close()
+	
+		keys = key.page.path_string
+		self.store._cache.record_uuid(acl_uuid, keys, 'acls')
+		self.store._cache.record_uuid(last_ver, keys, 'version')
+		self.store._cache.record_uuid(last_ver, keys, 'attr')
+		self.store._cache.record_uuid(last_ver, keys, 'entries')
 	
 	def read_entries(self):
 		p = histore.LeafPage(self.key, self.store.h)
