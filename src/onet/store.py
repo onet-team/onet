@@ -1,3 +1,4 @@
+import inspect
 from enum import Enum
 
 import toml
@@ -285,7 +286,7 @@ class OnetStore:
 					else:
 						print (20206, path)
 						raise NotADirectoryError
-				print(each, x, x.__dict__)
+				print(each, x, inspect.getmembers(x))
 		self.stat_cache[s.node] = s
 		return s
 	
