@@ -33,6 +33,8 @@ class OnetStat(object):
 		if getattr(self, 'node'):
 			return True
 		return False
+	
+	__slots__ = ('st_mode', 'st_key', 'st_storage', 'st_owner', 'st_uuid', 'st_guid')
 
 
 class DirectoryNotEmpty(Exception):
