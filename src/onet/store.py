@@ -314,6 +314,11 @@ class OnetStore:
 			s = OnetStat()
 			s.st_storage = root_node.store._storage
 			s.st_uuid = ''
+			s.node = root_node
+			s.st_guid = root_node.guid
+			s.st_key = None  # TODO should we fill this in?
+			s.st_mode = 0    # TODO what is this anyway?
+			s.st_owner = None   # TODO how do we get this info?
 		else:
 			x = None
 			if str(param) in root_node.entries:
