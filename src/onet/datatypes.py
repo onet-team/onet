@@ -157,7 +157,7 @@ class Entries:
 		r['entrylist'] = entrylist
 		for each in range(count):
 			entry = self.entries[each]
-			entstr = 'entry-%d' % each
+			entstr = 'entry-%d' % (each+1)
 			r[entstr] = entry.to_dict()
 		return r
 
@@ -168,7 +168,7 @@ class Entries:
 		self.version = entrylist['version']
 		count = entrylist['count']
 		for each in range(count):
-			entstr = 'entry-%d' % (each)
+			entstr = 'entry-%d' % (each+1)
 			entry_value = d[entstr]
 			# print(10141, entry_value)
 			entry_type = entry_value['type']
