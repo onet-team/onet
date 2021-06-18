@@ -7,7 +7,7 @@ from typing import Dict, Any
 
 import histore
 from pathlib import PurePosixPath as Path
-from . import chunker
+#from . import chunker
 from pathlib import Path as FilePath
 import uuid
 from . import base36
