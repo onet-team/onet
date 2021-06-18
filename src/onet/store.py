@@ -636,14 +636,16 @@ class DirectoryNode(object):
 		finally:
 			rdr.close()
 		
+		attr_dump = ''
+		
 		rdr = dp.openReader("%s.attr" % ver.attributes)
 		try:
 			rd = rdr.read().decode()
 			attr_dict = toml.loads(rd)
 			attr = datatypes.Attributes(None)
 			attr.from_dict(attr_dict)
-			attr.version = ver
-			# print (toml.dumps(attr.to_dict()))
+			attr.version = ver  # TODO set to a Version object here, and is no longer a string
+			attr_dump = toml.dumps(attr.to_dict())
 		finally:
 			rdr.close()
 			
