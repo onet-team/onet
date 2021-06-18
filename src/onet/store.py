@@ -321,6 +321,9 @@ class OnetStore:
 				uuid1 = x.uuid
 			else:
 				uuid1 = x.last_ver  # version.uuid
+			k = root_node.find_key(uuid1)  # path_string
+			key = self.h.resolve_key(k)    # HiStoreKey
+			# TODO what do we want with key? To lookup a version?
 			s.st_uuid = uuid1
 			from . import datatypes
 			if isinstance(x, DirectoryNode):
