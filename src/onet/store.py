@@ -562,11 +562,6 @@ class DirectoryNode(AbstractNode):
 		last_ver = new_hex_uuid()
 		p = histore.LeafPage(self.key, self.store.h)
 		key = self.store.h.resolve_key(p.path_string)
-		# wr = self.store.h.openWriter(key, "Page.onet")
-		# wr.write("Type: Directory\n")
-		# wr.write("URN: " + self.guid + "\n")
-		# wr.write("Last-Version: " + last_ver + "\n")
-		# wr.close()
 		self.store.write_page_dot_onet(key, self.guid, last_ver)
 		#
 		from . import datatypes
