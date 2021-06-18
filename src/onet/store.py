@@ -224,6 +224,24 @@ class OnetStore:
 	def import_dir_stat(self, path: Path, stat, move=False):
 		c = (stat.st_dev, stat.st_ino)
 		print("import_dir_stat", path, stat, type(stat), oct(stat.st_mode), c)
+		s = self.stat(path)
+		unix_ctime = stat.st_ctime_ns
+		unix_atime = stat.st_atime_ns
+		unix_mtime = stat.st_mtime_ns
+		# uid, gid?
+		#
+		uuid1 = s.st_uuid
+		#
+		found_key = self.find_key(uuid1)
+		key1 = self.store.h.resolve_key(found_key)
+		po = self.store.h.openReader(key1, "Page.onet")
+		
+		node: AbstractNode
+		
+		node = self.store.read_page_file(po, None)  # fill in filename later
+		node.write_attr("unix:ctime", unix_ctime)
+		node.write_attr("unix:atime", unix_atime)
+		node.write_attr("unix:mtime", unix_mtime)
 		pass
 	
 	def import_file_stat(self, path: Path, stat, move=False):
@@ -474,7 +492,12 @@ class OnetStore:
 			return acls
 
 
-class DirectoryNode(object):
+class AbstractNode(object):
+	def write_attr(self, k, v):
+		pass
+
+
+class DirectoryNode(AbstractNode):
 	content_page: histore.LeafPage
 	guid: str
 	histore_key: histore.HiStoreKey
