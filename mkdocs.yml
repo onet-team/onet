@@ -17,6 +17,9 @@ nav:
   - Home: index.md
   - Getting started:
     - Installation: getting-started.md
+    - Clients: concepts/clients.md
+    - Servers: concepts/servers.md
+    - Viewers: concepts/viewers.md
   - Command Line: command-line.md
   - Concepts:
     - Overview: concepts/overview.md
