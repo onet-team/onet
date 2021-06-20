@@ -1,4 +1,5 @@
 [![Coverage Status](https://coveralls.io/repos/github/onet-team/onet/badge.png?branch=main)](https://coveralls.io/github/onet-team/onet?branch=main)
+[![codecov](https://codecov.io/gh/onet-team/onet/branch/main/graph/badge.svg?token=JY0RZQLQPJ)](https://codecov.io/gh/onet-team/onet)
 
 # onet
 
