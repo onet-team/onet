@@ -10,3 +10,23 @@ plugins:
   - git-revision-date-localized
 markdown_extensions:
   - def_list
+
+
+nav:
+  - Home: index.md
+  - Getting started:
+    - Installation: getting-started.md
+  - Command Line: command-line.md
+  - Concepts:
+    - Overview: concepts/overview.md
+    - Spaces: concepts/spaces.md
+    - Transactions: concepts/transactions.md
+  - Repository:
+    - Overview: repository/overview.md
+    - Layout: repository/layout.md
+    - Stores: 
+      - Overview: repository/stores-overview.md
+      - HiStore: repository/histore.md
+      - Chunked Store: repository/chunked-store.md
+      - UUID Store: repository/uuid-store.md
+
