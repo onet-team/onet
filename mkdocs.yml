@@ -5,6 +5,7 @@ theme:
     scheme: preference
   font: false
 repo_url: https://github.com/onet-team/onet
+site_url: https://onet-team.github.io/onet/
 repo_name: onet-team/onet
 plugins:
   - git-revision-date-localized
