@@ -1,5 +1,5 @@
 # datatypes.py
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 class User:
@@ -95,7 +95,7 @@ class Version:
 	acl: str
 	attributes: str  # a pointer to an attr file
 	previous: list  # of uuids/versions of old versions
-	entries: str     # a pointer to an entries file
+	entries: Optional[str]     # a pointer to an entries file
 	
 	def __init__(self, name, uuid, acl_uuid, node):
 		self.name = name
@@ -104,6 +104,7 @@ class Version:
 		self.node = node
 		self.previous = []
 		self.attributes = ''
+		self.entries = None
 	
 	def to_dict(self):
 		r = {}
@@ -156,7 +157,7 @@ class Entries:
 		r['entrylist'] = entrylist
 		for each in range(count):
 			entry = self.entries[each]
-			entstr = 'entry-%d' % each
+			entstr = 'entry-%d' % (each+1)
 			r[entstr] = entry.to_dict()
 		return r
 
@@ -267,10 +268,11 @@ class NormalEntry(Entry):
 		return r
 	
 	def from_dict(self, d):
-		self.uuid = d['uuid']
 		assert d['type'] == 'normal'
+		self.uuid = d['uuid']
+		self.filename = d['filename']
 	
-	
+
 class Chunks:
 	pass
 
