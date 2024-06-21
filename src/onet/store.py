@@ -1,10 +1,13 @@
+import inspect
+from enum import Enum
+
 import toml
 import json
 from typing import Dict, Any
 
 import histore
 from pathlib import PurePosixPath as Path
-from . import chunker
+#from . import chunker
 from pathlib import Path as FilePath
 import uuid
 from . import base36
@@ -17,6 +20,7 @@ class OnetStat(object):
 	st_owner: str  # uuid
 	st_uuid: str
 	st_guid: str
+	# node: AbstractNode
 	
 	def is_dir(self):
 		if not self.exists():
@@ -31,6 +35,8 @@ class OnetStat(object):
 		if getattr(self, 'node'):
 			return True
 		return False
+	
+	__slots__ = ('st_mode', 'st_key', 'st_storage', 'st_owner', 'st_uuid', 'st_guid', 'node')
 
 
 class DirectoryNotEmpty(Exception):
@@ -111,6 +117,13 @@ class OnetStore:
 		# print([x["default"] for x in spaces["spaces"].keys()])
 		self._storage = y[0][1]
 		self._space_name = y[0][0]
+		
+		if True:
+			spacex = FilePath(self._path, self._space_name)
+			if not spacex.exists():
+				spacex.mkdir()
+				with open(FilePath(spacex, "space_id.txt"), 'w') as spacefp:
+					spacefp.writelines([self._storage])
 	
 	def _init_default(self):
 		h = histore.HiStore(FilePath(self._path, self._space_name, 'histore'))
@@ -129,6 +142,7 @@ class OnetStore:
 		n = self.read_page_file(po, '/')  # TODO is this an appropriate filename?
 		n.histore_key = key
 		n.path = p.path
+		n.path_string = p.path_string
 		n.content_page = p
 		n.full_path = '.'
 		self.root_node = n
@@ -213,6 +227,24 @@ class OnetStore:
 	def import_dir_stat(self, path: Path, stat, move=False):
 		c = (stat.st_dev, stat.st_ino)
 		print("import_dir_stat", path, stat, type(stat), oct(stat.st_mode), c)
+		s = self.stat(path)
+		unix_ctime = stat.st_ctime_ns
+		unix_atime = stat.st_atime_ns
+		unix_mtime = stat.st_mtime_ns
+		# uid, gid?
+		#
+		uuid1 = s.st_uuid
+		#
+		found_key = self.find_key(uuid1)
+		key1 = self.store.h.resolve_key(found_key)
+		po = self.store.h.openReader(key1, "Page.onet")
+		
+		node: AbstractNode
+		
+		node = self.store.read_page_file(po, None)  # fill in filename later
+		node.write_attr("unix:ctime", unix_ctime)
+		node.write_attr("unix:atime", unix_atime)
+		node.write_attr("unix:mtime", unix_mtime)
 		pass
 	
 	def import_file_stat(self, path: Path, stat, move=False):
@@ -255,12 +287,12 @@ class OnetStore:
 					else:
 						print (20206, path)
 						raise NotADirectoryError
-				print(each, x, x.__dict__)
+				print(each, x, inspect.getmembers(x))
 		self.stat_cache[s.node] = s
 		return s
 	
 	def remove(self, path: Path, recursive=False):
-		if not type(path) is Path:
+		if not isinstance(path, Path):
 			path = Path(path)
 		s = self.stat(path)
 		if s.exists():
@@ -282,18 +314,40 @@ class OnetStore:
 			s = OnetStat()
 			s.st_storage = root_node.store._storage
 			s.st_uuid = ''
+			s.node = root_node
+			s.st_guid = root_node.guid
+			s.st_key = None  # TODO should we fill this in?
+			s.st_mode = 0    # TODO what is this anyway?
+			s.st_owner = None   # TODO how do we get this info?
 		else:
 			x = None
 			if str(param) in root_node.entries:
 				x = root_node.entries[str(param)]
 			s = OnetStat()
 			s.st_storage = root_node.store._storage
-			s.st_uuid = ''
-			if x is not None:
+			if hasattr(x, 'uuid'):         # NormalEntry
+				uuid1 = x.uuid
+			else:
+				uuid1 = x.last_ver  # version.uuid
+			k = root_node.find_key(uuid1)  # path_string
+			key = self.h.resolve_key(k)    # HiStoreKey
+			# TODO what do we want with key? To lookup a version?
+			s.st_uuid = uuid1
+			from . import datatypes
+			if isinstance(x, DirectoryNode):
 				s.st_uuid = x.last_ver
 				s.st_guid = x.guid
 				s.st_key = x.path_string
 				s.node = x
+			elif isinstance(x, datatypes.NormalEntry):
+				assert False
+			elif isinstance(x, FileNode):
+				s.st_uuid = x.last_ver
+				s.st_guid = x.guid
+				s.st_key = x.path_string
+				s.node = x
+			else:
+				assert False
 		return s
 	
 	def list(self, path: Path):
@@ -315,13 +369,9 @@ class OnetStore:
 			parent: DirectoryNode
 			
 			key = parent.store.h.allocate()
-			wr = self.h.openWriter(key, "Page.onet")
-			wr.write("Type: Directory\n")
 			node_guid = new_hex_uuid()
-			wr.write("URN: " + node_guid + "\n")
 			last_version = new_hex_uuid()
-			wr.write("Last-Version: " + last_version + "\n")
-			wr.close()
+			self.write_page_dot_onet(key, node_guid, last_version)
 			#
 			from . import datatypes
 			acl_uuid = new_hex_uuid()
@@ -344,28 +394,50 @@ class OnetStore:
 			version.attributes = attr.uuid
 			entries = datatypes.Entries(version.uuid)
 			#
-			import toml
-			fp = self.h.openWriter(key, acl_uuid+'.acls')
-			s = toml.dumps(acls.to_dict())
-			fp.write(s)
-			fp.close()
-			fp = self.h.openWriter(key, last_version+'.version')
-			s = toml.dumps(version.to_dict())
-			fp.write(s)
-			fp.close()
-			fp = self.h.openWriter(key, last_version+'.attr')
-			s = toml.dumps(attr.to_dict())
-			fp.write(s)
-			fp.close()
-			fp = self.h.openWriter(key, last_version+'.entries')
-			s = toml.dumps(entries.to_dict())
-			fp.write(s)
-			fp.close()
+			self.write_version_with_entries(key, version, last_version, acl_uuid, acls, attr, entries)
 			#
 			parent.add(filename, directory_node, version=version, file_uuid=last_version)
 			#
 			return directory_node
+	
+	def write_page_dot_onet(self, key, node_guid, last_version):
+		wr = self.h.openWriter(key, "Page.onet")
+		wr.write("Type: Directory\n")
+		wr.write("URN: " + node_guid + "\n")
+		wr.write("Last-Version: " + last_version + "\n")
+		wr.close()
+	
+	def write_version_with_entries(self, key, version, last_version, acl_uuid, acls, attr, entries):
+		import toml
+		
+		h: histore.HiStore
+		
+		h = self.h
+		
+		fp = h.openWriter(key, acl_uuid + '.acls')
+		s = toml.dumps(acls.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = h.openWriter(key, last_version + '.version')
+		s = toml.dumps(version.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = h.openWriter(key, last_version + '.attr')
+		s = toml.dumps(attr.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = h.openWriter(key, last_version + '.entries')
+		s = toml.dumps(entries.to_dict())
+		fp.write(s)
+		fp.close()
+		
+		keys = key.page.path_string
 
+		self._cache.record_uuid(acl_uuid, keys, 'acls')
+		self._cache.record_uuid(last_version, keys, 'version')
+		self._cache.record_uuid(last_version, keys, 'attr')
+		self._cache.record_uuid(last_version, keys, 'entries')
+	
 	def exists_in_parent(self, parent, path):
 		"""
 		:type path: str
@@ -445,12 +517,18 @@ class OnetStore:
 			return acls
 
 
-class DirectoryNode(object):
+class AbstractNode(object):
+	def write_attr(self, k, v):
+		pass
+
+
+class DirectoryNode(AbstractNode):
 	content_page: histore.LeafPage
 	guid: str
 	histore_key: histore.HiStoreKey
 	key: int
 	last_ver: str
+	path_string: str
 	path: Path
 	store: OnetStore
 	filename: str
@@ -459,6 +537,7 @@ class DirectoryNode(object):
 	full_path: Path
 	
 	def __init__(self, store, key, filename):
+		self.path_string = None
 		self.store = store
 		self.key = key
 		self.filename = filename
@@ -489,11 +568,7 @@ class DirectoryNode(object):
 		last_ver = new_hex_uuid()
 		p = histore.LeafPage(self.key, self.store.h)
 		key = self.store.h.resolve_key(p.path_string)
-		wr = self.store.h.openWriter(key, "Page.onet")
-		wr.write("Type: Directory\n")
-		wr.write("URN: " + self.guid + "\n")
-		wr.write("Last-Version: " + last_ver + "\n")
-		wr.close()
+		self.store.write_page_dot_onet(key, self.guid, last_ver)
 		#
 		from . import datatypes
 		#
@@ -516,32 +591,50 @@ class DirectoryNode(object):
 		attr.put('filename', datatypes.AttributeValue(self.filename, acl=acls.acls[0]))
 		version.attributes = attr.uuid
 		#
-		fp = self.store.h.openWriter(key, acl_uuid + '.acls')
-		s = toml.dumps(acls.to_dict())
-		fp.write(s)
-		fp.close()
-		fp = self.store.h.openWriter(key, last_ver + '.version')
-		s = toml.dumps(version.to_dict())
-		fp.write(s)
-		fp.close()
-		fp = self.store.h.openWriter(key, last_ver + '.attr')
-		s = toml.dumps(attr.to_dict())
-		fp.write(s)
-		fp.close()
-		#
 		es = datatypes.Entries(version.uuid)
 		e = datatypes.NormalEntry()
 		e.uuid = file_uuid
 		e.filename = filename
 		es.add(e)
-		wr = self.store.h.openWriter(key, "%s.entries" % last_ver)
-		s = toml.dumps(es.to_dict())
+		es_to_dict = es.to_dict()
+		#
+		self.write_version_with_entries(key, version, last_ver, acl_uuid, acls, attr, es_to_dict)
+		#
+		d = DirectoryNode(self.store, key, self.filename)
+		d.last_ver = last_ver
+		d.guid = self.guid
+		d.path_string = key.page.path_string
+		self.entries[filename] = d
+		self.last_ver = last_ver
+	
+	def write_version_with_entries(self, key, version, last_ver, acl_uuid, acls, attr, es_to_dict):
+		store_h: histore.HiStore
+		
+		store_h = self.store.h
+		
+		fp = store_h.openWriter(key, acl_uuid + '.acls')
+		s = toml.dumps(acls.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = store_h.openWriter(key, last_ver + '.version')
+		s = toml.dumps(version.to_dict())
+		fp.write(s)
+		fp.close()
+		fp = store_h.openWriter(key, last_ver + '.attr')
+		s = toml.dumps(attr.to_dict())
+		fp.write(s)
+		fp.close()
+		wr = store_h.openWriter(key, "%s.entries" % last_ver)
+		s = toml.dumps(es_to_dict)
 		wr.write(s)
 		wr.close()
-		#
-		self.entries[filename] = e
-		self.last_ver = last_ver
-
+	
+		keys = key.page.path_string
+		self.store._cache.record_uuid(acl_uuid, keys, 'acls')
+		self.store._cache.record_uuid(last_ver, keys, 'version')
+		self.store._cache.record_uuid(last_ver, keys, 'attr')
+		self.store._cache.record_uuid(last_ver, keys, 'entries')
+	
 	def read_entries(self):
 		p = histore.LeafPage(self.key, self.store.h)
 		key = self.store.h.resolve_key(p.path_string)
@@ -590,28 +683,51 @@ class DirectoryNode(object):
 		finally:
 			rdr.close()
 		
+		attr_dump = ''
+		
 		rdr = dp.openReader("%s.attr" % ver.attributes)
 		try:
 			rd = rdr.read().decode()
 			attr_dict = toml.loads(rd)
 			attr = datatypes.Attributes(None)
 			attr.from_dict(attr_dict)
-			attr.version = ver
-			# print (toml.dumps(attr.to_dict()))
+			attr.version = ver  # TODO set to a Version object here, and is no longer a string
+			attr_dump = toml.dumps(attr.to_dict())
 		finally:
 			rdr.close()
 			
 		return (ver, attr, attr.attr['filename'].value)
-
 	
-	def find_key(self, uuid):
-		x = self.store._cache.get_version(uuid)
-		assert len(x) == 1
-		x = x[0]
-		return x.key
+	def find_key(self, uuid1):
+		x = self.store._cache.get_version(uuid1)
+		if len(x) == 1:
+			x = x[0]
+			return x.key
+		elif len(x) == 0:
+			raise KeyError
+		elif len(x) > 1:
+			raise IllegalStateError((IllegalState.TOO_MANY_UUIDS, uuid1, x))
+		else:  # negative number
+			raise ConsistencyError
+	
+	__slots__ = (
+		'content_page', 'guid', 'histore_key', 'key', 'last_ver', 'path_string', 'path', 'store', 'filename', 'entries',
+		'entries_read', 'full_path')
+
+class ConsistencyError(Exception):
+	pass
 
 
-class FileNode(object):
+class IllegalState(Enum):
+	TOO_MANY_UUIDS = 1
+
+
+class IllegalStateError(Exception):
+	def __init__(self, state):
+		self.state = state
+
+
+class FileNode(AbstractNode):
 	content_page: histore.LeafPage
 	guid: str
 	histore_key: histore.HiStoreKey
@@ -619,7 +735,8 @@ class FileNode(object):
 	last_ver: str
 	path: Path
 	store: OnetStore
-	
+	path_string: str
+
 	def __init__(self, store, key):
 		self.store = store
 		self.key = key
