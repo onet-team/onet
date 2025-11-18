@@ -16,7 +16,10 @@ jobs:
         pip3 install -r requirements.txt
         python3 setup.py bdist_wheel
         coverage run -m unittest discover
-
+        
+    - name: Renovate Bot GitHub Action
+      uses: renovatebot/github-action@v44.0.3
+      
     - name: Coveralls
       uses: AndreMiras/coveralls-python-action@develop
       with:
