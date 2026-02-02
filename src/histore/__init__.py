@@ -24,6 +24,7 @@ class LeafPage(object):
 			self.path_string = number_to_path_string(number)
 		else:
 			self.path_string = number
+		assert len(self.path_string) == 11
 		self.path = Path(self.path_string)
 		
 	def exists(self) -> bool:
@@ -200,7 +201,7 @@ class HiStoreWriter(object):
 		if content is not None:
 			if offset is not None:
 				self.fp.seek(offset)
-		if type(content) is str:
+		if isinstance(content, str):
 			content = content.encode()  # convert to bytes
 		self.fp.write(content)
 
@@ -213,6 +214,7 @@ class HiStoreWriter(object):
 			self.fp.close()
 			self.fp = None
 
+	__slots__ = ('filename', 'path', 'store', 'key_path', 'fp')
 
 class HandleError(Exception):
 	pass
